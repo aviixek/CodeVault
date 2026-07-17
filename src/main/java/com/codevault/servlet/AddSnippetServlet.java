@@ -1,5 +1,5 @@
 package com.codevault.servlet;
-
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 import com.codevault.dao.SnippetDAO;
@@ -25,6 +25,9 @@ public class AddSnippetServlet extends HttpServlet {
         String language = request.getParameter("language");
         String description = request.getParameter("description");
         String code = request.getParameter("code");
+        HttpSession session = request.getSession(false);
+
+        int userId = (Integer) session.getAttribute("userId");
 
         Snippet snippet = new Snippet();
 
@@ -32,6 +35,7 @@ public class AddSnippetServlet extends HttpServlet {
         snippet.setLanguage(language);
         snippet.setDescription(description);
         snippet.setCode(code);
+        snippet.setUserId(userId);
 
         SnippetDAO dao = new SnippetDAO();
 

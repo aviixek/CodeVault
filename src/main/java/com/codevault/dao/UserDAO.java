@@ -1,6 +1,7 @@
 package com.codevault.dao;
 
 import java.sql.Connection;
+import com.codevault.model.User;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.ResultSet;
@@ -48,9 +49,9 @@ public class UserDAO {
 
     }
     
-    public boolean validateUser(String login, String password) {
+    public User validateUser(String login, String password) {
 
-        boolean status = false;
+        User user = null;
 
         String sql = "SELECT * FROM users WHERE (username=? OR email=?) AND password=?";
 
@@ -67,7 +68,14 @@ public class UserDAO {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                status = true;
+
+                user = new User();
+
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+
             }
 
             con.close();
@@ -76,7 +84,7 @@ public class UserDAO {
             e.printStackTrace();
         }
 
-        return status;
+        return user;
     }
     
     public void displayAllUsers() {

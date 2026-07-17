@@ -16,7 +16,7 @@ public class SnippetDAO {
         boolean status = false;
 
         String sql =
-        "INSERT INTO snippets(title,language,description,code) VALUES(?,?,?,?)";
+        		"INSERT INTO snippets(title,language,description,code,user_id) VALUES(?,?,?,?,?)";
 
         try {
 
@@ -28,6 +28,7 @@ public class SnippetDAO {
             ps.setString(2, snippet.getLanguage());
             ps.setString(3, snippet.getDescription());
             ps.setString(4, snippet.getCode());
+            ps.setInt(5, snippet.getUserId());
 
             int rows = ps.executeUpdate();
 
@@ -158,17 +159,19 @@ public class SnippetDAO {
 
     }
 
-    public List<Snippet> getAllSnippets() {
+    public List<Snippet> getAllSnippets(int userId) {
 
         List<Snippet> snippets = new ArrayList<>();
 
-        String sql = "SELECT * FROM snippets ORDER BY created_at DESC";
+        String sql = "SELECT * FROM snippets WHERE user_id = ? ORDER BY created_at DESC";
 
         try {
 
             Connection con = DBConnection.getConnection();
 
             PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setInt(1, userId);
 
             ResultSet rs = ps.executeQuery();
 
@@ -198,6 +201,32 @@ public class SnippetDAO {
 
         return snippets;
 
+    }
+    public int getTotalSnippets() {
+
+        int total = 0;
+
+        String sql = "SELECT COUNT(*) FROM snippets";
+
+        try {
+
+            Connection con = DBConnection.getConnection();
+
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                total = rs.getInt(1);
+            }
+
+            con.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return total;
     }
 
 }

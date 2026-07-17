@@ -10,6 +10,7 @@ public class Snippet {
     private String code;
     private String description;
     private Timestamp createdAt;
+    private int userId;
 
     public Snippet() {
     }
@@ -60,6 +61,13 @@ public class Snippet {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
 }

@@ -1,6 +1,8 @@
 package com.codevault.servlet;
 
 import java.io.IOException;
+import com.codevault.model.User;
+import jakarta.servlet.http.HttpSession;
 
 import com.codevault.dao.UserDAO;
 
@@ -28,12 +30,22 @@ public class LoginServlet extends HttpServlet {
 
         UserDAO dao = new UserDAO();
 
-        boolean valid = dao.validateUser(login, password);
+        User user = dao.validateUser(login, password);
 
-        if (valid) {
+        if (user != null) {
+
+            HttpSession session = request.getSession();
+
+            session.setAttribute("userId", user.getId());
+            session.setAttribute("username", user.getUsername());
+
             response.sendRedirect("dashboard");
+
         } else {
-            response.getWriter().println("Invalid Username/Email or Password");
+
+            request.setAttribute("error", "Invalid Username or Password");
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+
         }
     }
 }

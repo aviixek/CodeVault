@@ -1,5 +1,5 @@
 package com.codevault.servlet;
-
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -22,9 +22,21 @@ public class DashboardServlet extends HttpServlet {
             HttpServletResponse response)
             throws ServletException, IOException {
 
-        SnippetDAO dao = new SnippetDAO();
+    	HttpSession session = request.getSession(false);
 
-        List<Snippet> snippets = dao.getAllSnippets();
+    	if (session == null || session.getAttribute("userId") == null) {
+    	    response.sendRedirect("login.jsp");
+    	    return;
+    	}
+
+    	int userId = (Integer) session.getAttribute("userId");
+
+    	SnippetDAO dao = new SnippetDAO();
+
+    	List<Snippet> snippets = dao.getAllSnippets(userId);
+    	int totalSnippets = snippets.size();
+
+        request.setAttribute("totalSnippets", totalSnippets);
 
         request.setAttribute("snippets", snippets);
 
