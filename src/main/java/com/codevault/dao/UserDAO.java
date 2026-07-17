@@ -48,12 +48,11 @@ public class UserDAO {
 
     }
     
-    public boolean validateUser(String email, String password) {
+    public boolean validateUser(String login, String password) {
 
         boolean status = false;
 
-        String sql =
-        "SELECT * FROM users WHERE email=? AND password=?";
+        String sql = "SELECT * FROM users WHERE (username=? OR email=?) AND password=?";
 
         try {
 
@@ -61,29 +60,23 @@ public class UserDAO {
 
             PreparedStatement ps = con.prepareStatement(sql);
 
-            ps.setString(1, email);
-
-            ps.setString(2, password);
+            ps.setString(1, login);
+            ps.setString(2, login);
+            ps.setString(3, password);
 
             ResultSet rs = ps.executeQuery();
 
-            if(rs.next()) {
-
+            if (rs.next()) {
                 status = true;
-
             }
 
             con.close();
 
-        }
-        catch(Exception e) {
-
+        } catch (Exception e) {
             e.printStackTrace();
-
         }
 
         return status;
-
     }
     
     public void displayAllUsers() {

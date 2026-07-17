@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.codevault.dao.UserDAO;
 import com.codevault.model.User;
 
-@WebServlet("/register")
+@WebServlet("/RegisterServlet")
 public class RegisterServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -28,6 +28,9 @@ public class RegisterServlet extends HttpServlet {
         String username = request.getParameter("username");
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        System.out.println("Username = " + username);
+        System.out.println("Email = " + email);
+        System.out.println("Password = " + password);
 
         User user = new User();
 
