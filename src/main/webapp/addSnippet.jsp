@@ -938,8 +938,6 @@
           </svg>
           <span>CodeVault</span>
         </div>
-        <p class="project-tagline">Advanced Java Project</p>
-        <p class="developer-credit">Developed by <span>Abhishek Kushwaha</span></p>
       </div>
       
       <div class="footer-bottom">
