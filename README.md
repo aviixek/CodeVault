@@ -1,116 +1,295 @@
-# 🚀 CodeVault - Personal Code Snippet Manager
+<div align="center">
 
-> A modern developer-friendly web application to organize, search, edit, and manage programming snippets with syntax highlighting and a premium UI.
+# 🚀 CodeVault
+### Personal Code Snippet Manager
+
+A modern web application for developers to securely save, organize, search, and manage code snippets with syntax highlighting and an elegant user interface.
+
+---
 
 ![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge)
 ![JSP](https://img.shields.io/badge/JSP-Servlet-blue?style=for-the-badge)
+![Tomcat](https://img.shields.io/badge/Apache-Tomcat%2011-F8DC75?style=for-the-badge)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-00758F?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
----
-
-## ✨ Features
-
-- 🔐 User Authentication (Login & Registration)
-- 📝 Add, Edit & Delete Code Snippets
-- 🔍 Live Search (Instant Filtering)
-- 📋 One-click Copy Code
-- 🎨 Modern Dark & Light Theme
-- 💻 Syntax Highlighting using Highlight.js
-- ⌨️ Code Editing with CodeMirror
-- 📊 Dashboard Statistics
-- 🏷️ Language Badges
-- 📱 Fully Responsive Design
-- ⚡ Premium SaaS-inspired Interface
+</div>
 
 ---
 
-## 📸 Screenshots
+# 📖 About
 
-> Add screenshots of your application here.
+**CodeVault** is a dynamic Java web application that helps developers store, organize, edit, and search their programming snippets in one place.
 
-| Dashboard | Add Snippet |
-|-----------|-------------|
-| ![](screenshots/dashboard.png) | ![](screenshots/add-snippet.png) |
+Instead of saving code in random text files or notes, CodeVault provides a clean dashboard where snippets can be categorized, searched instantly, copied with one click, and managed efficiently.
+
+Built using **JSP, Servlets, JDBC, MySQL, and Apache Tomcat**, the project demonstrates core Java Enterprise development concepts with a modern user interface.
 
 ---
 
-## 🛠️ Tech Stack
+# ✨ Features
 
-### Backend
+### 🔐 Authentication
+
+- User Registration
+- Secure Login
+- Session Management
+- Logout
+
+---
+
+### 📝 Snippet Management
+
+- Add Snippets
+- Edit Snippets
+- Delete Snippets
+- View Snippets
+
+---
+
+### 💻 Code Editor
+
+- CodeMirror Editor
+- Syntax Highlighting
+- Multiple Programming Languages
+- Automatic Formatting Support
+
+---
+
+### 🎨 User Interface
+
+- Modern Dashboard
+- Dark Mode
+- Light Mode
+- Responsive Design
+- Glassmorphism Cards
+- Beautiful Animations
+
+---
+
+### 🔍 Search
+
+- Live Search
+- Instant Filtering
+- Language Search
+- Description Search
+
+---
+
+### 📋 Productivity
+
+- One Click Copy
+- Dashboard Statistics
+- Language Badges
+- Clean Code Preview
+
+---
+
+# 🛠️ Tech Stack
+
+## Backend
+
 - Java
 - JSP
 - Servlets
 - JDBC
 
-### Frontend
+## Frontend
+
 - HTML5
 - CSS3
 - JavaScript
 
-### Database
+## Database
+
 - MySQL
 
-### Libraries
+## Server
+
+- Apache Tomcat 11
+
+## Libraries
+
 - Highlight.js
 - CodeMirror 5
 
-### Server
-- Apache Tomcat 11
-
 ---
 
-## 📂 Project Structure
+# 📂 Project Structure
 
 ```text
 CodeVault
 │
 ├── src/
-│   ├── java/
-│   ├── webapp/
-│   │   ├── assets/
-│   │   ├── dashboard.jsp
-│   │   ├── addSnippet.jsp
-│   │   ├── editSnippet.jsp
-│   │   └── login.jsp
+│   ├── controller/
+│   ├── dao/
+│   ├── model/
+│   ├── util/
+│   └── ...
 │
-├── pom.xml
+├── WebContent/
+│   ├── css/
+│   ├── js/
+│   ├── images/
+│   ├── dashboard.jsp
+│   ├── login.jsp
+│   ├── register.jsp
+│   ├── addSnippet.jsp
+│   ├── editSnippet.jsp
+│   ├── profile.jsp
+│   └── WEB-INF/
+│       └── web.xml
+│
+├── build/
+│
 └── README.md
+```
+
+*(Adjust the folder names if your project structure differs.)*
+
+---
+
+# 📸 Screenshots
+
+## Dashboard
+
+> Add a screenshot here
+
+```
+screenshots/dashboard.png
 ```
 
 ---
 
-## 🚀 Getting Started
+## Add Snippet
 
-### Clone the repository
+```
+screenshots/add-snippet.png
+```
+
+---
+
+## Login
+
+```
+screenshots/login.png
+```
+
+---
+
+## Dark Mode
+
+```
+screenshots/dark-mode.png
+```
+
+---
+
+# 🚀 Installation Guide
+
+## Prerequisites
+
+- Java JDK 17 (or the version used by your project)
+- Eclipse IDE for Enterprise Java Developers
+- Apache Tomcat 11
+- MySQL Server
+- Git
+
+---
+
+## Clone Repository
 
 ```bash
 git clone https://github.com/aviixek/CodeVault.git
 ```
 
-### Open in Eclipse
+---
 
-Import as a Maven Project.
+## Import into Eclipse
 
-### Configure Database
+1. Open Eclipse.
+2. Go to:
 
-Create a MySQL database.
+```
+File
+    ↓
+Import
+    ↓
+Existing Projects into Workspace
+```
 
-Example:
+3. Select the cloned project.
+4. Finish the import.
+
+---
+
+## Configure Tomcat
+
+1. Open
+
+```
+Servers
+```
+
+2. Add
+
+```
+Apache Tomcat 11
+```
+
+3. Select the installed Tomcat directory.
+
+4. Add the CodeVault project to the server.
+
+---
+
+## Configure MySQL
+
+Create a database:
 
 ```sql
 CREATE DATABASE codevault;
 ```
 
-Import the provided SQL tables.
+Create the snippets table:
 
-Update your database credentials inside the JDBC configuration.
+```sql
+CREATE TABLE snippets(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100),
+    language VARCHAR(50),
+    code TEXT,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT
+);
+```
 
-### Run
+If your project includes additional tables (such as `users`), create/import those as well.
 
-Deploy the project on **Apache Tomcat 11**
+Update your JDBC connection details inside the project.
 
-Visit
+Example:
+
+```java
+String url = "jdbc:mysql://localhost:3306/codevault";
+String username = "root";
+String password = "your_password";
+```
+
+---
+
+## Run Project
+
+Right-click the project
+
+```
+Run As
+        ↓
+Run on Server
+```
+
+Open
 
 ```
 http://localhost:8080/CodeVault
@@ -118,170 +297,141 @@ http://localhost:8080/CodeVault
 
 ---
 
-## 🎯 Future Enhancements
+# 🎯 Current Features
+
+- ✅ User Authentication
+- ✅ Dashboard
+- ✅ CRUD Operations
+- ✅ Live Search
+- ✅ Copy Code
+- ✅ Syntax Highlighting
+- ✅ Code Editor
+- ✅ Dashboard Statistics
+- ✅ Responsive Layout
+- ✅ Dark / Light Theme
+
+---
+
+# 🚧 Future Improvements
 
 - ⭐ Favorite Snippets
-- 📂 Collections
 - 🏷️ Tags
+- 📂 Collections
 - 📤 Export Snippets
 - 📥 Import Snippets
-- 👤 User Profiles
+- 🔗 Share Snippets
+- 👤 User Profile
+- 📊 Usage Analytics
 - ☁️ Cloud Backup
+- 📱 Progressive Web App (PWA)
 
 ---
 
-## 👨‍💻 Developer
+# 🏗️ Architecture
 
-**Abhishek Kushwaha**
+```
+User
 
-GitHub:
-https://github.com/aviixek
+   │
 
----
+   ▼
 
-## 📄 License
+JSP Pages
 
-This project is licensed under the MIT License.# 🚀 CodeVault - Personal Code Snippet Manager
+   │
 
-> A modern developer-friendly web application to organize, search, edit, and manage programming snippets with syntax highlighting and a premium UI.
+   ▼
 
-![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge)
-![JSP](https://img.shields.io/badge/JSP-Servlet-blue?style=for-the-badge)
-![MySQL](https://img.shields.io/badge/MySQL-Database-00758F?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+Servlet Controller
 
----
+   │
 
-## ✨ Features
+   ▼
 
-- 🔐 User Authentication (Login & Registration)
-- 📝 Add, Edit & Delete Code Snippets
-- 🔍 Live Search (Instant Filtering)
-- 📋 One-click Copy Code
-- 🎨 Modern Dark & Light Theme
-- 💻 Syntax Highlighting using Highlight.js
-- ⌨️ Code Editing with CodeMirror
-- 📊 Dashboard Statistics
-- 🏷️ Language Badges
-- 📱 Fully Responsive Design
-- ⚡ Premium SaaS-inspired Interface
+DAO Layer
 
----
+   │
 
-## 📸 Screenshots
+   ▼
 
-> Add screenshots of your application here.
+JDBC
 
-| Dashboard | Add Snippet |
-|-----------|-------------|
-| ![](screenshots/dashboard.png) | ![](screenshots/add-snippet.png) |
+   │
 
----
+   ▼
 
-## 🛠️ Tech Stack
-
-### Backend
-- Java
-- JSP
-- Servlets
-- JDBC
-
-### Frontend
-- HTML5
-- CSS3
-- JavaScript
-
-### Database
-- MySQL
-
-### Libraries
-- Highlight.js
-- CodeMirror 5
-
-### Server
-- Apache Tomcat 11
-
----
-
-## 📂 Project Structure
-
-```text
-CodeVault
-│
-├── src/
-│   ├── java/
-│   ├── webapp/
-│   │   ├── assets/
-│   │   ├── dashboard.jsp
-│   │   ├── addSnippet.jsp
-│   │   ├── editSnippet.jsp
-│   │   └── login.jsp
-│
-├── pom.xml
-└── README.md
+MySQL Database
 ```
 
 ---
 
-## 🚀 Getting Started
+# 💡 Why CodeVault?
 
-### Clone the repository
+Developers often store useful code snippets in multiple places, making them difficult to organize and retrieve later.
+
+CodeVault solves this by providing:
+
+- Organized storage
+- Fast searching
+- Syntax highlighting
+- Easy editing
+- One-click copying
+- Secure user accounts
+
+---
+
+# 🌐 Live Demo
+
+🚧 Coming Soon
+
+This project currently runs on Apache Tomcat locally. A public deployment will be added in a future update.
+
+---
+
+# 🤝 Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
 
 ```bash
-git clone https://github.com/aviixek/CodeVault.git
+git checkout -b feature/new-feature
 ```
 
-### Open in Eclipse
+3. Commit changes.
 
-Import as a Maven Project.
-
-### Configure Database
-
-Create a MySQL database.
-
-Example:
-
-```sql
-CREATE DATABASE codevault;
+```bash
+git commit -m "Added new feature"
 ```
 
-Import the provided SQL tables.
+4. Push your branch.
 
-Update your database credentials inside the JDBC configuration.
-
-### Run
-
-Deploy the project on **Apache Tomcat 11**
-
-Visit
-
+```bash
+git push origin feature/new-feature
 ```
-http://localhost:8080/CodeVault
-```
+
+5. Open a Pull Request.
 
 ---
 
-## 🎯 Future Enhancements
-
-- ⭐ Favorite Snippets
-- 📂 Collections
-- 🏷️ Tags
-- 📤 Export Snippets
-- 📥 Import Snippets
-- 👤 User Profiles
-- ☁️ Cloud Backup
-
----
-
-## 👨‍💻 Developer
-
-**Abhishek Kushwaha**
-
-GitHub:
-https://github.com/aviixek
-
----
-
-## 📄 License
+# 📄 License
 
 This project is licensed under the MIT License.
+
+---
+
+# 👨‍💻 Developer
+
+**Abhishek Kushwaha**
+
+GitHub:
+https://github.com/aviixek
+
+---
+
+<div align="center">
+
+⭐ If you like this project, consider giving it a star!
+
+</div>
