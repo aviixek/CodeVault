@@ -144,19 +144,15 @@ CodeVault
 │
 └── README.md
 ```
-
-*(Adjust the folder names if your project structure differs.)*
-
 ---
 
 # 📸 Screenshots
 
 ## Dashboard
 
-> Add a screenshot here
-
 ```
-screenshots/dashboard.png
+<img width="1912" height="911" alt="image" src="https://github.com/user-attachments/assets/a800659b-d9d5-46e9-a47d-3fee9fa8117d" />
+
 ```
 
 ---
@@ -164,7 +160,8 @@ screenshots/dashboard.png
 ## Add Snippet
 
 ```
-screenshots/add-snippet.png
+<img width="1917" height="906" alt="image" src="https://github.com/user-attachments/assets/138ac96c-bd69-4533-873e-d287cbe63a46" />
+
 ```
 
 ---
@@ -172,7 +169,8 @@ screenshots/add-snippet.png
 ## Login
 
 ```
-screenshots/login.png
+<img width="1917" height="912" alt="image" src="https://github.com/user-attachments/assets/47dc1d04-ce7e-4f5b-a2a1-c2551fe0d79a" />
+
 ```
 
 ---
@@ -180,7 +178,8 @@ screenshots/login.png
 ## Dark Mode
 
 ```
-screenshots/dark-mode.png
+<img width="1917" height="913" alt="image" src="https://github.com/user-attachments/assets/a310530b-6ae2-42ad-b1ae-f58a16847f6e" />
+
 ```
 
 ---
