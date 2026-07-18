@@ -11,7 +11,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/codemirror5/lib/codemirror.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/codemirror5/theme/dracula.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/codemirror5/addon/fold/foldgutter.css">
   <style>
     /* ==========================================
        DESIGN SYSTEM & VARIABLES
@@ -578,24 +580,24 @@
     }
 
     /* Monospace Code Editor Area */
-    .code-textarea {
-      font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
-      background-color: #030303;
-      color: #a7f3d0;
-      border: 1px solid var(--border-neutral);
-      border-radius: 8px;
-      padding: 16px 20px;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      tab-size: 4;
-      -moz-tab-size: 4;
-      resize: vertical;
-      min-height: 280px;
-      width: 100%;
-      transition: all 0.2s ease;
-    }
-
-    body.light-theme .code-textarea {
+    .CodeMirror{
+    height:450px;
+    border:1px solid var(--border-neutral);
+    border-radius:12px;
+    font-size:15px;
+    font-family:Consolas, monospace;
+}
+.CodeMirror-scroll{
+    min-height:450px;
+}
+.CodeMirror-gutters{
+    border-right:1px solid var(--border-neutral);
+    background:var(--bg-surface);
+}
+.CodeMirror-focused{
+    outline:none;
+}
+  body.light-theme .code-textarea {
       background-color: #f8fafc;
       color: #0f172a;
       border-color: var(--border-neutral);
@@ -879,7 +881,7 @@ body.light-theme .select-control option {
         </div>
       </c:if>
       
-      <form action="${pageContext.request.contextPath}/editSnippet" method="post" id="editSnippetForm">
+      <form action="${pageContext.request.contextPath}/updateSnippet" method="post" id="editSnippetForm">
         <!-- Hidden ID -->
         <input type="hidden" name="id" value="${snippet.id}" />
 
@@ -910,7 +912,7 @@ body.light-theme .select-control option {
 
         <div class="form-group">
           <label class="form-label" for="code">Code Snippet</label>
-          <textarea class="code-textarea" id="code" name="code" placeholder="paste or type your code here..." required>${snippet.code}</textarea>
+          <textarea id="code" name="code" placeholder="paste or type your code here..." required>${snippet.code}</textarea>
         </div>
         
         <div class="editor-actions">
@@ -962,6 +964,19 @@ body.light-theme .select-control option {
   <!-- ==========================================
        SCRIPTS
        ========================================== -->
+         <script src="${pageContext.request.contextPath}/assets/codemirror5/lib/codemirror.js"></script>
+
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/clike/clike.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/python/python.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/javascript/javascript.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/xml/xml.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/sql/sql.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/mode/css/css.js"></script>
+
+<script src="${pageContext.request.contextPath}/assets/codemirror5/addon/edit/closebrackets.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/addon/edit/matchbrackets.js"></script>
+<script src="${pageContext.request.contextPath}/assets/codemirror5/addon/selection/active-line.js"></script>
+       
   <script>
     // 1. Theme Toggle
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -1003,16 +1018,6 @@ body.light-theme .select-control option {
     });
 
     // 4. Tab key spacing inside textarea
-    const textarea = document.getElementById('code');
-    textarea.addEventListener('keydown', function(e) {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = this.selectionStart;
-        const end = this.selectionEnd;
-        this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + 1;
-      }
-    });
 
     // 5. Submit loading transition
     const form = document.getElementById('editSnippetForm');
@@ -1035,6 +1040,45 @@ body.light-theme .select-control option {
 
     document.querySelectorAll('.fade-in').forEach(element => {
       scrollObserver.observe(element);
+    });
+    const editor = CodeMirror.fromTextArea(
+    	    document.getElementById("code"),
+    	    {
+    	        mode: "text/x-java",
+    	        theme: "dracula",
+    	        lineNumbers: true,
+    	        styleActiveLine: true,
+    	        matchBrackets: true,
+    	        autoCloseBrackets: true,
+    	        indentUnit: 4,
+    	        tabSize: 4,
+    	        indentWithTabs: true,
+    	        lineWrapping: true
+    	    }
+    	);
+    const language = document.getElementById("language");
+
+    language.addEventListener("change", function () {
+
+        const modes = {
+
+            "Java": "text/x-java",
+            "Python": "python",
+            "JavaScript": "javascript",
+            "SQL": "text/x-sql",
+            "MySQL": "text/x-sql",
+            "JSP": "application/x-jsp",
+            "HTML": "xml",
+            "XML": "xml",
+            "CSS": "css"
+
+        };
+
+        editor.setOption(
+            "mode",
+            modes[this.value] || "text/plain"
+        );
+
     });
   </script>
 </body>

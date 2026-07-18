@@ -1,4 +1,5 @@
 package com.codevault.dao;
+import java.sql.Timestamp;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -227,6 +228,63 @@ public class SnippetDAO {
         }
 
         return total;
+    }
+    
+    public List<String> getAllLanguages(int userId) {
+
+        List<String> languages = new ArrayList<>();
+
+        String sql =
+            "SELECT DISTINCT language FROM snippets WHERE user_id=? ORDER BY language";
+
+        try {
+
+            Connection con = DBConnection.getConnection();
+
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                languages.add(rs.getString("language"));
+            }
+
+            con.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return languages;
+    }
+    public Timestamp getLastUpdated(int userId) {
+
+        Timestamp lastUpdated = null;
+
+        String sql = "SELECT MAX(created_at) AS last_updated FROM snippets WHERE user_id=?";
+
+        try {
+
+            Connection con = DBConnection.getConnection();
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                lastUpdated = rs.getTimestamp("last_updated");
+            }
+
+            con.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return lastUpdated;
     }
 
 }

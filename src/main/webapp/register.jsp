@@ -949,7 +949,7 @@
       <form action="${pageContext.request.contextPath}/RegisterServlet" method="post" id="registerForm">
       <div class="form-group">
           <label class="form-label" for="username">Username</label>
-          <input class="form-control" type="text" id="username" name="username" placeholder="e.g. aviixek" required minlength="3" />
+          <input class="form-control" type="text" id="username" name="username" placeholder="e.g. user" required minlength="3" />
         </div>
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>

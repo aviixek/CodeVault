@@ -11,6 +11,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/javascript.min.js"></script>
   
   <style>
     /* ==========================================
@@ -475,6 +485,13 @@
     .glass-card:hover {
       border-color: var(--border-hover);
     }
+.stat-card{
+    min-height:150px;
+    padding:24px 32px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
 
     /* Form Fields */
     .form-control {
@@ -516,6 +533,7 @@
         transform: translateY(0);
       }
     }
+    
 
     /* ==========================================
        PAGE SPECIFIC STYLES
@@ -549,6 +567,87 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+.copy-btn{
+
+    position:absolute;
+
+    top:12px;
+
+    right:12px;
+
+    width:36px;
+
+    height:36px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:rgba(17,24,39,.75);
+
+    backdrop-filter:blur(10px);
+
+    color:#d1d5db;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    z-index:20;
+
+}
+
+.copy-btn:hover{
+
+    background:var(--accent-blue);
+
+    color:white;
+
+    transform:scale(1.08);
+
+}
+.copy-tooltip{
+    position:absolute;
+    top:12px;
+    right:56px;
+
+    padding:6px 10px;
+    border-radius:8px;
+
+    background:#16a34a;
+    color:#fff;
+
+    font-size:12px;
+    font-weight:600;
+
+    opacity:0;
+    transform:translateX(8px);
+
+    transition:all .25s ease;
+
+    pointer-events:none;
+    white-space:nowrap;
+
+    z-index:30;
+}
+
+.copy-tooltip.show{
+    opacity:1;
+    transform:translateX(0);
+}
+.copy-tooltip.show{
+
+    opacity:1;
+
+    transform:translateY(0);
+
+}
 
     /* Stats Grid */
     .stats-grid {
@@ -580,6 +679,28 @@
       color: var(--text-primary);
       letter-spacing: -0.02em;
     }
+    .language-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:12px;
+}
+
+.language-chip{
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(var(--accent-blue-rgb),0.12);
+    border:1px solid rgba(var(--accent-blue-rgb),0.25);
+    color:var(--text-primary);
+    font-size:.82rem;
+    font-weight:600;
+    transition:.25s;
+}
+
+.language-chip:hover{
+    transform:translateY(-2px);
+    background:rgba(var(--accent-blue-rgb),0.18);
+}
 
     /* Dashboard Controls */
     .dashboard-controls {
@@ -687,6 +808,56 @@
       margin-bottom: 24px;
       flex-grow: 1;
     }
+.code-preview{
+    position:relative;
+    margin:18px 0;
+    border:1px solid var(--border-neutral);
+    border-radius:14px;
+    overflow:hidden;
+    max-height:190px;
+    background:#111827;
+}
+
+.code-preview pre{
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:transparent;
+
+}
+.code-preview code{
+    display:block;
+    padding:18px;
+    font-size:13px;
+    line-height:1.6;
+    white-space:pre;
+}
+.preview-fade{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:70px;
+    pointer-events:none;
+    background:linear-gradient(
+        rgba(17,24,39,0),
+        rgba(17,24,39,.95)
+    );
+}
+.view-code-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:12px;
+    text-decoration:none;
+    color:var(--accent-blue);
+    font-size:.88rem;
+    font-weight:700;
+    transition:.25s;
+}
+.view-code-btn:hover{
+    transform:translateX(6px);
+}
 
     .snippet-footer {
       border-top: 1px solid var(--border-neutral);
@@ -1021,16 +1192,37 @@
 </span>
       </div>
       
-      <div class="glass-card stat-card">
-        <span class="stat-label">Main Spec</span>	
-        <span class="stat-value">Java Web</span>
-      </div>
-      
-      <div class="glass-card stat-card">
-        <span class="stat-label">System Load</span>
-        <span class="stat-value" style="color: var(--accent-green);">Optimal</span>
-      </div>
+<div class="glass-card stat-card">
+    <span class="stat-label">Languages Used</span>
+
+    <div class="language-list">
+        <c:choose>
+
+            <c:when test="${not empty languages}">
+                <c:forEach var="lang" items="${languages}">
+                    <span class="language-chip">${lang}</span>
+                </c:forEach>
+            </c:when>
+
+            <c:otherwise>
+                <span style="color: var(--text-secondary);">
+                    No Languages
+                </span>
+            </c:otherwise>
+
+        </c:choose>
     </div>
+</div>
+      
+<div class="glass-card stat-card">
+    <span class="stat-label">Last Updated</span>
+
+    <span class="stat-value"
+          style="font-size:1.2rem;">
+        ${lastUpdated}
+    </span>
+</div>
+</div>
 
     <!-- Search & Add Controls -->
     <div class="dashboard-controls fade-in delay-2">
@@ -1040,7 +1232,12 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" name="query" value="${param.query}" placeholder="Search snippets by title, description or tag..." class="form-control search-input" />
+          <input
+    type="text"
+    id="searchInput"
+    placeholder="Search snippets..."
+    class="form-control search-input"
+    autocomplete="off">
         </div>
       </form>
       
@@ -1052,29 +1249,109 @@
         Add Snippet
       </a>
     </div>
+    <div id="searchStatus"
+     style="
+        margin-bottom:18px;
+        color:var(--text-secondary);
+        font-size:.9rem;">
+</div>
 
     <!-- Snippet Display -->
     <c:choose>
       <c:when test="${not empty snippets}">
         <div class="snippet-grid fade-in delay-3">
           <c:forEach var="snippet" items="${snippets}">
-            <div class="glass-card snippet-card">
+            <div class="glass-card snippet-card"
+
+     data-title="${snippet.title}"
+
+     data-description="${snippet.description}"
+
+     data-language="${snippet.language}">
               <div>
                 <div class="snippet-header">
                   <a href="${pageContext.request.contextPath}/editSnippet?id=${snippet.id}" class="snippet-title">${snippet.title}</a>
                   
                   <c:set var="langClass" value="lang-other" />
+                  <c:set var="highlightLang" value="plaintext"/>
                   <c:choose>
-                    <c:when test="${snippet.language == 'Java'}"><c:set var="langClass" value="lang-java" /></c:when>
-                    <c:when test="${snippet.language == 'MySQL' || snippet.language == 'SQL'}"><c:set var="langClass" value="lang-mysql" /></c:when>
-                    <c:when test="${snippet.language == 'JSP' || snippet.language == 'HTML'}"><c:set var="langClass" value="lang-jsp" /></c:when>
-                    <c:when test="${snippet.language == 'Python'}"><c:set var="langClass" value="lang-python" /></c:when>
-                    <c:when test="${snippet.language == 'JavaScript' || snippet.language == 'JS'}"><c:set var="langClass" value="lang-javascript" /></c:when>
-                  </c:choose>
+
+    <c:when test="${snippet.language == 'Java'}">
+        <c:set var="langClass" value="lang-java"/>
+        <c:set var="highlightLang" value="java"/>
+    </c:when>
+
+    <c:when test="${snippet.language == 'Python'}">
+        <c:set var="langClass" value="lang-python"/>
+        <c:set var="highlightLang" value="python"/>
+    </c:when>
+
+    <c:when test="${snippet.language == 'JavaScript' || snippet.language == 'JS'}">
+        <c:set var="langClass" value="lang-javascript"/>
+        <c:set var="highlightLang" value="javascript"/>
+    </c:when>
+
+    <c:when test="${snippet.language == 'MySQL' || snippet.language == 'SQL'}">
+        <c:set var="langClass" value="lang-mysql"/>
+        <c:set var="highlightLang" value="sql"/>
+    </c:when>
+
+    <c:when test="${snippet.language == 'JSP' || snippet.language == 'HTML'}">
+        <c:set var="langClass" value="lang-jsp"/>
+        <c:set var="highlightLang" value="xml"/>
+    </c:when>
+
+</c:choose>
                   <span class="lang-badge ${langClass}">${snippet.language}</span>
                 </div>
                 
                 <p class="snippet-description">${snippet.description}</p>
+<div class="code-preview">
+
+<button class="copy-btn" title="Copy Code">
+
+    <svg class="copy-icon"
+         width="18"
+         height="18"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round">
+
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+
+    </svg>
+
+</button>
+
+<div class="copy-tooltip">
+
+    Copied!
+
+</div>
+
+    <textarea
+        class="full-code"
+        style="display:none;">${snippet.code}</textarea>
+
+    <pre>
+        <code class="language-${highlightLang}">
+${snippet.previewCode}
+        </code>
+    </pre>
+
+    <div class="preview-fade"></div>
+
+</div>
+
+<a class="view-code-btn"
+   href="${pageContext.request.contextPath}/editSnippet?id=${snippet.id}">
+    View Full Code →
+</a>
               </div>
               
               <div class="snippet-footer">
@@ -1219,6 +1496,106 @@
     document.querySelectorAll('.fade-in').forEach(element => {
       scrollObserver.observe(element);
     });
+    const searchInput = document.getElementById("searchInput");
+    const cards = document.querySelectorAll(".snippet-card");
+    const searchStatus = document.getElementById("searchStatus");
+
+    searchInput.addEventListener("input", function () {
+
+        const keyword = this.value.trim().toLowerCase();
+
+        let visible = 0;
+
+        cards.forEach(card => {
+
+            const searchable = (
+                card.dataset.title + " " +
+                card.dataset.description + " " +
+                card.dataset.language
+            ).toLowerCase();
+
+            if (searchable.includes(keyword)) {
+
+                card.style.display = "";
+
+                visible++;
+
+            } else {
+
+                card.style.display = "none";
+
+            }
+
+        });
+
+        if (keyword === "") {
+
+            searchStatus.textContent = "";
+
+        } else {
+
+        	searchStatus.textContent =
+        	    visible + " snippet" + (visible !== 1 ? "s" : "") + " found";
+        }
+
+    });
+    document.querySelectorAll(".copy-btn").forEach(button=>{
+
+        button.addEventListener("click",async function(){
+
+            const preview=this.closest(".code-preview");
+
+            const code=preview.querySelector(".full-code").value;
+
+            const tooltip=preview.querySelector(".copy-tooltip");
+
+            await navigator.clipboard.writeText(code);
+
+            this.style.background="#16a34a";
+
+            this.innerHTML=`
+            <svg width="18" height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3">
+
+            <polyline points="20 6 9 17 4 12"/>
+
+            </svg>
+            `;
+
+            tooltip.classList.add("show");
+
+            setTimeout(()=>{
+
+                tooltip.classList.remove("show");
+
+                this.style.background="rgba(17,24,39,.75)";
+
+                this.innerHTML=`
+                <svg width="18" height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2">
+
+                <rect x="9" y="9"
+                width="13"
+                height="13"
+                rx="2"></rect>
+
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+
+                </svg>
+                `;
+
+            },1200);
+
+        });
+
+    });
+    hljs.highlightAll();
   </script>
 </body>
 </html>

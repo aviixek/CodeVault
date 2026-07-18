@@ -69,5 +69,31 @@ public class Snippet {
     public void setUserId(int userId) {
         this.userId = userId;
     }
+    public String getPreviewCode() {
+
+        if(code == null)
+            return "";
+
+        String[] lines = code.split("\n");
+
+        StringBuilder preview = new StringBuilder();
+
+        int limit = Math.min(lines.length, 6);
+
+        for(int i = 0; i < limit; i++) {
+
+            preview.append(lines[i]);
+
+            if(i < limit - 1)
+                preview.append("\n");
+
+        }
+
+        if(lines.length > 6)
+            preview.append("\n...");
+
+        return preview.toString();
+
+    }
 
 }

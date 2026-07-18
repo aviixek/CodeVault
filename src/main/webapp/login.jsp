@@ -855,7 +855,7 @@
        ========================================== -->
   <header class="navbar">
     <div class="navbar-container">
-      <a href="${pageContext.request.contextPath}/index.html" class="brand">
+      <a href="${pageContext.request.contextPath}/index.jsp" class="brand">
         <!-- Logo SVG -->
         <svg class="brand-logo" width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 4L32 9V19C32 26.5 27 33.5 20 36C13 33.5 8 26.5 8 19V9L20 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" fill="rgba(255,255,255,0.02)" />
@@ -932,6 +932,7 @@
           <span>${error}</span>
         </div>
       </c:if>
+      
 
       <c:if test="${not empty message}">
         <div class="banner-success">
