@@ -55,7 +55,14 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>8.3.0</version>
+            <version>8.4.0</version>
+        </dependency>
+
+        <!-- Override transitive protobuf-java to fix CVE-2024-7254 -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.25.5</version>
         </dependency>
 
         <!-- BCrypt password hashing (jBCrypt) -->
