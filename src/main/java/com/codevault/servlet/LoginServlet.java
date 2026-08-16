@@ -1,11 +1,11 @@
 package com.codevault.servlet;
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.codevault.dao.AuditDAO;
 import com.codevault.dao.UserDAO;
 import com.codevault.model.User;
 
@@ -30,9 +30,14 @@ public class LoginServlet extends HttpServlet {
         String login = request.getParameter("username");
         String password = request.getParameter("password");
 
+        String clientIp = getClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        AuditDAO auditDAO = new AuditDAO();
+
         // Basic input validation — do NOT log the password
         if (login == null || login.isBlank() || password == null || password.isBlank()) {
-            request.setAttribute("error", "Username and password are required.");
+            auditDAO.logEvent(null, AuditDAO.EVENT_LOGIN_FAILED, false, clientIp, userAgent);
+            request.setAttribute("error", "Invalid username or password.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
@@ -67,13 +72,32 @@ public class LoginServlet extends HttpServlet {
             newSession.setAttribute("userId", user.getId());
             newSession.setAttribute("username", user.getUsername());
 
+            // 6. Record LOGIN_SUCCESS audit log
+            auditDAO.logEvent(user.getId(), AuditDAO.EVENT_LOGIN_SUCCESS, true, clientIp, userAgent);
+
             LOGGER.info("User logged in successfully: " + user.getUsername());
 
             response.sendRedirect(request.getContextPath() + "/dashboard");
 
         } else {
+            // Check if user exists to associate user_id in audit if possible (without revealing to client)
+            User existingUser = dao.getUserByUsername(login.trim());
+            Integer targetUserId = (existingUser != null) ? existingUser.getId() : null;
+
+            // Record LOGIN_FAILED audit log
+            auditDAO.logEvent(targetUserId, AuditDAO.EVENT_LOGIN_FAILED, false, clientIp, userAgent);
+
+            // Generic error message to prevent username enumeration
             request.setAttribute("error", "Invalid username or password.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String xf = request.getHeader("X-Forwarded-For");
+        if (xf != null && !xf.isBlank()) {
+            return xf.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -10,7 +10,8 @@ import java.util.logging.Logger;
 
 /**
  * Provides database connections via HikariCP connection pool.
- * All configuration is read from environment variables — no credentials in source.
+ * Configuration is read from environment variables.
+ * Fails fast if required credentials (DB_USER, DB_PASSWORD) are missing.
  */
 public class DBConnection {
 
@@ -34,15 +35,25 @@ public class DBConnection {
             String host = getEnvOrDefault("DB_HOST", "localhost");
             String port = getEnvOrDefault("DB_PORT", "3306");
             String dbName = getEnvOrDefault("DB_NAME", "codevault");
-            String user = getEnvOrDefault("DB_USER", "codevault_user");
-            String password = getEnvOrDefault("DB_PASSWORD", "");
+            String user = System.getenv("DB_USER");
+            String password = System.getenv("DB_PASSWORD");
+
+            // Fail fast: Required credentials must be explicitly configured
+            if (user == null || user.isBlank()) {
+                throw new IllegalStateException(
+                        "Database configuration error: DB_USER environment variable must be set.");
+            }
+            if (password == null || password.isEmpty()) {
+                throw new IllegalStateException(
+                        "Database configuration error: DB_PASSWORD environment variable must be set and cannot be empty.");
+            }
 
             String url = "jdbc:mysql://" + host + ":" + port + "/" + dbName
                     + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(url);
-            config.setUsername(user);
+            config.setUsername(user.trim());
             config.setPassword(password);
             config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
@@ -61,7 +72,7 @@ public class DBConnection {
                 dataSource = new HikariDataSource(config);
                 LOGGER.info("HikariCP connection pool initialized successfully.");
             } catch (Exception e) {
-                LOGGER.log(Level.SEVERE, "Failed to initialize connection pool.", e);
+                LOGGER.log(Level.SEVERE, "Failed to initialize HikariCP connection pool.", e);
                 throw new RuntimeException("Database connection pool initialization failed.", e);
             }
         }
@@ -90,6 +101,6 @@ public class DBConnection {
 
     private static String getEnvOrDefault(String key, String defaultValue) {
         String value = System.getenv(key);
-        return (value != null && !value.isBlank()) ? value : defaultValue;
+        return (value != null && !value.isBlank()) ? value.trim() : defaultValue;
     }
 }

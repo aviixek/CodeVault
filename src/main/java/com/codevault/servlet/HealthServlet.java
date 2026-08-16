@@ -16,6 +16,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+/**
+ * Health check endpoint.
+ * Returns minimal JSON status without exposing internal infrastructure details.
+ */
 @WebServlet("/health")
 public class HealthServlet extends HttpServlet {
 
@@ -30,29 +34,26 @@ public class HealthServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        boolean dbHealthy = false;
-        String dbError = null;
+        boolean isHealthy = false;
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement("SELECT 1");
              ResultSet rs = ps.executeQuery()) {
 
             if (rs.next()) {
-                dbHealthy = true;
+                isHealthy = true;
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Health check: Database ping failed", e);
-            dbError = e.getMessage();
+            LOGGER.log(Level.WARNING, "Health check failed internal database connectivity test.", e);
         }
 
         PrintWriter out = response.getWriter();
-        if (dbHealthy) {
+        if (isHealthy) {
             response.setStatus(HttpServletResponse.SC_OK);
-            out.print("{\"status\":\"UP\",\"database\":\"HEALTHY\"}");
+            out.print("{\"status\":\"UP\"}");
         } else {
             response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-            String safeError = (dbError != null) ? dbError.replace("\"", "\\\"") : "Connection failed";
-            out.print("{\"status\":\"DEGRADED\",\"database\":\"DOWN\",\"error\":\"" + safeError + "\"}");
+            out.print("{\"status\":\"DOWN\"}");
         }
         out.flush();
     }

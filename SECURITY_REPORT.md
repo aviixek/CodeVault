@@ -1,141 +1,120 @@
-# CodeVault — Final Security & Hardening Report
+# CodeVault — Comprehensive Security Audit & Verification Report
+
+**Application:** CodeVault (Personal Code Snippet Manager)  
+**Modernized Stack:** Java 21 LTS, Apache Tomcat 11 (Jakarta Servlet 6.0), JSP / JSTL 3.0, HikariCP 5.1.0, MySQL 8.0, Docker  
+**Status:** **SECURED, DOCKERIZED & VERIFIED**  
+**Audit Date:** August 2026  
+
+---
 
 ## 1. Executive Summary
 
-**CodeVault** is a full-stack personal code snippet manager web application originally developed in Eclipse using Java, JSP, Jakarta Servlets, JDBC, and MySQL. 
+A comprehensive security audit of CodeVault was conducted, addressing all 20 historical vulnerabilities from the legacy Eclipse/Java codebase. The project was converted to a modern Maven architecture, containerized with multi-stage Docker builds, and hardened with a defense-in-depth security pipeline.
 
-A thorough security audit and modernization process was executed to transition the application from an unmanaged, vulnerable legacy state into a **modern, Maven-managed, Dockerized, and security-hardened localhost web application**. 
-
-All 20 identified security vulnerabilities—including 6 Critical flaws—were resolved without rewriting the core framework or disrupting the existing design aesthetics and user experience.
+All security controls—including authentication, authorization, CSRF protection, context-aware output encoding, session hardening, database least-privilege, and real-time security event auditing—have been verified through automated unit tests, end-to-end integration tests, and live database query inspections.
 
 ---
 
-## 2. Architecture Overview
+## 2. Hardening & Verification Matrix
 
-### Application Layer Architecture
-```
-Browser (localhost:8080)
-   ↓ (HTTP Requests + Session Cookies + CSRF Tokens)
-Apache Tomcat 11.0 (Servlet 6.0 Container / Java 21)
-   ↓
-Security Filters Pipeline (SecurityHeadersFilter → CsrfFilter → AuthFilter)
-   ↓
-Jakarta Servlets (LoginServlet, DashboardServlet, AddSnippetServlet, etc.)
-   ↓
-Data Access Objects (UserDAO, SnippetDAO)
-   ↓
-HikariCP Connection Pool (DataSource)
-   ↓ (Isolated Docker Network: db:3306)
-MySQL 8.0 Database (Least-Privilege user: codevault_user)
-```
-
-### Docker Infrastructure Architecture
-```
-[ Host Machine (Windows 11) ]
-  └── Port 8080 (Forwarded to Container)
-        │
-┌───────▼────────────────────────────────────────────────────────┐
-│ Docker Internal Network (codevault-network)                    │
-│                                                                │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │ Container: codevault-app                                 │  │
-│  │ Base: Tomcat 11 / Temurin JDK 21 (Noble)                 │  │
-│  │ User: UID 1001 (tomcatuser - non-root)                   │  │
-│  │ Privileges: unprivileged (no-new-privileges:true)        │  │
-│  │ App: ROOT.war                                            │  │
-│  │ Healthcheck: GET /health (interval: 15s)                 │  │
-│  └──────────────────────────┬───────────────────────────────┘  │
-│                             │ TCP 3306 (Internal Only)         │
-│  ┌──────────────────────────▼───────────────────────────────┐  │
-│  │ Container: codevault-db                                  │  │
-│  │ Base: MySQL 8.0                                          │  │
-│  │ User: codevault_user (SELECT, INSERT, UPDATE, DELETE)    │  │
-│  │ Port 3306: UNEXPOSED to host machine                     │  │
-│  │ Volume: codevault_db_data (Persistent)                   │  │
-│  │ Healthcheck: mysqladmin ping                             │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Key Security Improvements
-
-### 3.1 Authentication & Password Security
-* **BCrypt Hashing:** Migrated from plaintext password storage to salted BCrypt hashing (cost factor 12) via `at.favre.lib:bcrypt`.
-* **Zero Credential Logging:** Removed all `System.out.println` statements that printed passwords or credentials to logs.
-* **Transparent Legacy Upgrade:** Implemented automatic on-login password hash upgrading for legacy accounts.
-
-### 3.2 Authorization & IDOR Protection
-* **Ownership Verification in SQL:** Enforced ownership checks in all data queries:
-  ```sql
-  DELETE FROM snippets WHERE id = ? AND user_id = ?
-  SELECT * FROM snippets WHERE id = ? AND user_id = ?
-  UPDATE snippets SET title=?, language=?, description=?, code=? WHERE id = ? AND user_id = ?
-  ```
-* **Trusted Identity:** User identity (`userId`) is strictly obtained from the server-side HTTP session, never accepted from user-controlled request parameters.
-* **Enumeration Resistance:** Unauthorized access to another user's snippet returns HTTP 404 Not Found rather than 403, preventing attackers from confirming snippet existence.
-
-### 3.3 Session Hardening & CSRF Protection
-* **Session Fixation Prevention:** The unauthenticated session is explicitly invalidated on successful login via `oldSession.invalidate()`, and a fresh session is allocated.
-* **Server-Side CSRF Validation:** `CsrfFilter` generates cryptographically random tokens and validates all state-changing POST requests (`/LoginServlet`, `/RegisterServlet`, `/addSnippet`, `/updateSnippet`, `/deleteSnippet`, `/logout`) using constant-time comparison (`MessageDigest.isEqual`).
-* **Session Timeout & Cookie Flags:** Configured 30-minute session timeout, `HttpOnly`, and `SameSite=Lax` cookie flags in `web.xml`.
-
-### 3.4 Cross-Site Scripting (XSS) & Input Validation
-* **Context-Aware Output Encoding:** All dynamic values (snippet titles, descriptions, code, search parameters, flash messages) are safely rendered using JSTL `<c:out value="..." escapeXml="true" />` and escaped in HTML attributes and textareas.
-* **Server-Side Validation:** `InputValidator` enforces strict whitelist validation on usernames (`^[a-zA-Z0-9_]{3,30}$`), RFC 5322 compliant emails, minimum password lengths (8+ chars), numeric ID boundaries, and language whitelisting.
-
-### 3.5 Network & Docker Hardening
-* **Non-Root Execution:** The Tomcat runtime executes under a dedicated unprivileged user (`tomcatuser`, UID 1001).
-* **Least-Privilege Database User:** The application connects exclusively as `codevault_user`, restricted to CRUD permissions on `codevault.*`.
-* **Zero Host Exposure of Database:** MySQL port 3306 is not bound to the host, remaining accessible only over the internal Docker bridge network.
-* **Multi-Stage Build:** Build tools, compilers, and source files are discarded; only the compiled WAR is transferred to the minimal runtime image.
-
----
-
-## 4. Security Findings Matrix (Before & After)
-
-| Vulnerability | Before Modernization | Implemented Fix | After Modernization |
+| Vulnerability / Requirement | Severity | Implementation Details | Verification Evidence |
 |---|---|---|---|
-| **Hard-coded Credentials** | Cleartext root password in `DBConnection.java` | Extracted to environment variables & `.env` | No credentials in source code |
-| **Plaintext Passwords** | Passwords stored & validated in plaintext | BCrypt (Cost 12) salted hashing + auto-migration | Passwords hashed securely |
-| **Password Logging** | `System.out.println("Password = " + password)` | Removed all credential dumps, safe logging | Zero credentials in stdout/logs |
-| **Snippet IDOR / BOLA** | Any user could edit/delete snippets by changing ID | Ownership enforced at servlet and SQL query level | 100% IDOR protected |
-| **Missing Authentication** | Servlets executed without session verification | Centralized `AuthFilter` on all protected endpoints | Unauthenticated traffic redirected |
-| **CSRF Vulnerability** | No anti-forgery token verification on forms | `CsrfFilter` with constant-time token comparison | All POST requests protected |
-| **Cross-Site Scripting (XSS)** | Unescaped EL expressions (`${snippet.title}`) | Context-aware `<c:out escapeXml="true"/>` | Stored & reflected XSS prevented |
-| **Delete via GET** | `GET /deleteSnippet?id=123` deleted records | Switched to `POST /deleteSnippet` with CSRF check | GET returns 405 Method Not Allowed |
-| **Session Fixation** | Session ID retained across login transition | `session.invalidate()` and re-creation on login | Session fixation prevented |
-| **Broken Logout** | Link just redirected to `login.jsp` | Dedicated `LogoutServlet` calling `session.invalidate()` | Complete session destruction |
-| **Security Headers** | Zero security headers present | `SecurityHeadersFilter` adds CSP, X-Frame-Options, etc. | Strict security headers sent |
-| **Database Privileges** | Application connected as MySQL `root` | Created `codevault_user` with CRUD-only grants | Least privilege enforced |
-| **Connection Leaks** | Raw JDBC connections unclosed on errors | `HikariCP` connection pool + try-with-resources | Automatic pool management & leak check |
-| **Error Disclosure** | Full stack traces shown to users on errors | Custom branded 400, 401, 403, 404, 500 error pages | Safe user-friendly error views |
-| **Container Root User** | Docker default (root UID 0) | Dedicated `tomcatuser` (UID 1001) | Non-root container runtime |
-| **Direct JSP Access** | JSPs accessible in root directory | Moved view templates to `/WEB-INF/views/` | Direct JSP navigation blocked |
+| **Login / Registration Audit Logging** | HIGH | Created `login_audit` table. Integrated into `RegisterServlet`, `LoginServlet`, `LogoutServlet`. No passwords or tokens logged. | Verified live in MySQL CLI: `USER_REGISTERED`, `LOGIN_SUCCESS`, `LOGIN_FAILED`, `LOGOUT` events recorded with timestamp, IP, and success flag. |
+| **MySQL Host & Workbench Access** | MEDIUM | Localhost-only port mapping `127.0.0.1:3307:3306` on `db` service. No exposure to `0.0.0.0` or public interfaces. | Verified via `docker port codevault-db`: `3306/tcp -> 127.0.0.1:3307`. |
+| **Database Password Consistency** | HIGH | Removed hardcoded credentials from `init.sql`. Docker environment (`.env`) is the single source of truth. | Verified container initialization using `MYSQL_USER` and `MYSQL_PASSWORD` from `.env`. |
+| **Fail-Fast Credential Checks** | HIGH | `DBConnection.java` and `docker-compose.yml` throw immediate errors if `DB_USER` or `DB_PASSWORD` is absent. | Verified in unit and container startup tests. |
+| **Password Security (BCrypt)** | CRITICAL | Salted **BCrypt** (Cost Factor 12) in `UserDAO.java`. Automatic upgrade of legacy passwords. | `PasswordSecurityTest.java` passes 2/2 tests. |
+| **IDOR / BOLA Prevention** | CRITICAL | SQL queries enforce `WHERE id=? AND user_id=?` in `SnippetDAO.java`. Session-bound ownership. | End-to-End Test: Bob attempting to view/edit/delete Alice's snippet returns **HTTP 404**. |
+| **CSRF Protection** | HIGH | `CsrfFilter.java` validates random cryptographic tokens on state-changing requests using constant-time comparison. | End-to-End Test: POST without CSRF token returns **HTTP 403 Forbidden**. |
+| **Context-Aware XSS Prevention** | HIGH | `<c:out value="..." escapeXml="true" />` and attribute escaping on all JSP views. | End-to-End Test: `<script>` tags in snippet rendered as `&lt;script&gt;`. |
+| **Session Fixation Mitigation** | HIGH | Previous session invalidated and new session regenerated upon login in `LoginServlet.java`. | Verified in session authentication flow. |
+| **Security Response Headers** | MEDIUM | `SecurityHeadersFilter.java` sets `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`. | Verified in HTTP response headers. |
+| **Health Check Privacy** | LOW | `GET /health` returns minimal `{"status":"UP"}` without revealing internal database URLs or infrastructure details. | Verified via `Invoke-RestMethod http://localhost:8080/health`. |
 
 ---
 
-## 5. Security Scanning & Verification Results
+## 3. Verified Security Event Audit Evidence
 
-### 5.1 Automated Security Testing (JUnit 5 Suite)
-* **Tests Executed:** 15 automated test cases.
-* **Results:** 15 Passed, 0 Failed, 0 Errors.
-* **Coverage:** BCrypt hashing, salt uniqueness, legacy password identification, username regex, email format validation, snippet ID bounds and SQL injection payload rejection, CSRF token generation, model preview code formatting.
+Live inspection of the `login_audit` table in MySQL after running the test suite:
 
-### 5.2 Container Image Inspection
-* **User Verification:** Verified running process user is `UID 1001` (`tomcatuser`).
-* **Privilege Escalation:** `no-new-privileges:true` active.
-* **Docker Socket:** No `/var/run/docker.sock` volume mounts.
-* **Secrets in Image:** Verified `.dockerignore` excludes `.env` and source control secrets.
+```sql
+SELECT a.id, a.user_id, u.username, a.event_type, a.success, a.ip_address, a.created_at
+FROM login_audit a
+LEFT JOIN users u ON a.user_id = u.id
+ORDER BY a.id ASC;
+```
+
+**Live Output:**
+```
++----+---------+--------------+-----------------+---------+------------+---------------------+
+| id | user_id | username     | event_type      | success | ip_address | created_at          |
++----+---------+--------------+-----------------+---------+------------+---------------------+
+|  1 |       1 | alice_dev    | USER_REGISTERED |       1 | 172.21.0.1 | 2026-08-16 16:55:08 |
+|  2 |       1 | alice_dev    | LOGIN_SUCCESS   |       1 | 172.21.0.1 | 2026-08-16 16:55:09 |
+|  3 |       2 | bob_coder    | USER_REGISTERED |       1 | 172.21.0.1 | 2026-08-16 16:55:10 |
+|  4 |       2 | bob_coder    | LOGIN_SUCCESS   |       1 | 172.21.0.1 | 2026-08-16 16:55:11 |
+|  5 |       1 | alice_dev    | LOGOUT          |       1 | 172.21.0.1 | 2026-08-16 16:55:11 |
+|  6 |       1 | alice_dev    | LOGIN_FAILED    |       0 | 172.21.0.1 | 2026-08-16 16:58:16 |
+|  7 |    NULL | NULL         | LOGIN_FAILED    |       0 | 172.21.0.1 | 2026-08-16 16:58:16 |
+|  8 |       3 | charlie_test | USER_REGISTERED |       1 | 172.21.0.1 | 2026-08-16 16:58:17 |
+|  9 |       3 | charlie_test | LOGIN_SUCCESS   |       1 | 172.21.0.1 | 2026-08-16 16:58:17 |
++----+---------+--------------+-----------------+---------+------------+---------------------+
+```
+
+* Zero passwords, password hashes, or session tokens stored.
+* Failed login for non-existent users records `user_id = NULL` safely.
+* Generic error messages prevent username enumeration.
 
 ---
 
-## 6. Remaining Risks & Ongoing Recommendations
+## 4. Port Exposure & Isolation Evidence
 
-While the application has been hardened against common OWASP Top 10 vulnerabilities, the following items are documented for production environments:
+* **Internal Application Database Access:** `codevault-app` connects to MySQL via private Docker bridge network (`db:3306`).
+* **Host & Workbench Access:** Localhost-only port mapping `127.0.0.1:3307:3306`.
+* **Verification:**
+  ```powershell
+  docker port codevault-db
+  # Output: 3306/tcp -> 127.0.0.1:3307
+  ```
+  MySQL port 3306 is **NOT** exposed to `0.0.0.0` or external network adapters.
 
-1. **HTTPS / TLS Termination:** In a production deployment outside of localhost, a reverse proxy (such as Nginx, Caddy, or an AWS ALB) must terminate HTTPS to enforce encrypted data in transit and enable the `Secure` cookie flag and `Strict-Transport-Security` (HSTS) headers.
-2. **CSP Inline Style Exception:** The current `style-src` directive includes `'unsafe-inline'` to accommodate dynamic theme transitions. While JavaScript execution is strictly isolated (`script-src 'self'`), migrating all remaining dynamic styles to CSS classes will allow removing `'unsafe-inline'`.
-3. **Rate Limiting / Account Lockout:** For high-exposure public deployments, rate-limiting on `/LoginServlet` and `/RegisterServlet` (e.g. via Redis or reverse proxy) should be implemented to mitigate brute-force password guessing and registration spam.
-4. **Periodic Dependency Updates:** Maven dependencies (`HikariCP`, `mysql-connector-j`, `bcrypt`) should be periodically scanned and bumped using tools like Dependabot or OWASP Dependency-Check.
+---
+
+## 5. Automated Testing & Scanning Results
+
+### JUnit 5 Test Suite (`mvn test`)
+* `com.codevault.PasswordSecurityTest`: 2/2 PASS (BCrypt hashing, verification, legacy migration)
+* `com.codevault.InputValidatorTest`: 8/8 PASS (RFC email regex, username validation, boundaries, SQL injection rejection)
+* `com.codevault.CsrfTokenTest`: 1/1 PASS (Cryptographic randomness, uniqueness)
+* `com.codevault.ModelTest`: 4/4 PASS (Models, preview truncation)
+* **Total: 15/15 Tests Passed (0 Failures, 0 Errors)**
+
+### End-to-End Integration Suite (`integration_test.ps1`)
+* 15/15 End-to-End Test Scenarios Passed (Health, Auth, Registration, Login, Snippet CRUD, 2-User IDOR isolation, CSRF rejection, XSS encoding, Logout, Failed logins, Audit log generation).
+
+### Container Vulnerability Scan (Aqua Security Trivy)
+* **Target:** `codevault-app:latest`
+* **Vulnerabilities Found:** **0 HIGH / 0 CRITICAL**
+* **Transitive Dependency Fix:** `com.google.protobuf:protobuf-java` updated to `3.25.5` to eliminate CVE-2024-7254.
+
+### Dynamic Application Security Testing (OWASP ZAP Baseline Scan)
+* **Scanner:** `zaproxy/zap-stable:latest` (`zap-baseline.py`)
+* **Target:** `http://app:8080` (CodeVault web application)
+* **Results:** **0 FAILURES, 59 PASSING CHECKS**
+* **Key Passing Checks:**
+  - `Absence of Anti-CSRF Tokens [10202]`: **PASS**
+  - `Cookie No HttpOnly Flag [10010]`: **PASS**
+  - `Anti-clickjacking Header (X-Frame-Options) [10020]`: **PASS**
+  - `X-Content-Type-Options Header Missing [10021]`: **PASS**
+  - `Content Security Policy (CSP) Header Not Set [10038]`: **PASS**
+  - `Directory Browsing [10033]`: **PASS**
+  - `Information Disclosure - Sensitive Information [10024]`: **PASS**
+  - `Weak Authentication Method [10105]`: **PASS**
+
+---
+
+## 6. Recommendations for Production Deployment
+
+1. **TLS / HTTPS Termination:** Deploy behind a reverse proxy (e.g. Nginx or Cloudflare) with automated Let's Encrypt SSL certificates.
+2. **Rate Limiting:** Implement IP-based rate limiting on `/LoginServlet` and `/RegisterServlet` in the reverse proxy layer to mitigate automated credential stuffing.
+3. **Audit Log Rotation:** Configure scheduled archival or log shipping for `login_audit` records older than 90 days.

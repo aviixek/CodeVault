@@ -1,7 +1,8 @@
 services:
   # -------------------------------------------------------
   # Database Service (MySQL 8.0)
-  # Internal network only — port 3306 NOT exposed to host
+  # App connects via internal network: db:3306
+  # Host CLI & MySQL Workbench connects via: 127.0.0.1:3307 (Localhost only)
   # -------------------------------------------------------
   db:
     image: mysql:8.0
@@ -9,11 +10,13 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    ports:
+      - "127.0.0.1:3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_me_strong_root_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD must be set in .env}
       MYSQL_DATABASE: ${DB_NAME:-codevault}
-      MYSQL_USER: ${DB_USER:-codevault_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-change_me_strong_app_password}
+      MYSQL_USER: ${DB_USER:?DB_USER must be set in .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
     volumes:
       - db_data:/var/lib/mysql
       - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
@@ -44,8 +47,8 @@ services:
       DB_HOST: db
       DB_PORT: "3306"
       DB_NAME: ${DB_NAME:-codevault}
-      DB_USER: ${DB_USER:-codevault_user}
-      DB_PASSWORD: ${DB_PASSWORD:-change_me_strong_app_password}
+      DB_USER: ${DB_USER:?DB_USER must be set in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
     depends_on:
       db:
         condition: service_healthy

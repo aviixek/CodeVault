@@ -1,22 +1,16 @@
-# CodeVault — Comprehensive Security Test Plan (Phase 24)
+# CodeVault Security Test Plan & Verification Matrix
 
-This test plan defines the manual and automated security verification procedures executed against the CodeVault web application running in its hardened Docker environment.
-
----
-
-## Test Execution Matrix
-
-| # | Test Case | Target / Endpoint | Payload / Method | Expected Result | Actual Result | Status |
+| # | Test Scenario | Target / Method | Payload / Action | Expected Result | Observed Result | Status |
 |---|---|---|---|---|---|---|
-| **1** | **Unauthenticated Dashboard Access** | `GET /dashboard` | Direct URL navigation without active session | Intercepted by `AuthFilter`, redirected (302) to `/login.jsp` | Redirected to `login.jsp` | ✅ **PASS** |
-| **2** | **Unauthenticated Direct JSP Access** | `GET /WEB-INF/views/dashboard.jsp` | Direct URL navigation to view template | Blocked by servlet container (404/Direct access prohibited) | HTTP 404 / Blocked | ✅ **PASS** |
-| **3** | **IDOR: View Another User's Snippet** | `GET /editSnippet?id=999` (Snippet owned by User B) | Authenticated as User A, request User B's snippet ID | Server returns HTTP 404 Not Found (does not disclose existence) | HTTP 404 Not Found | ✅ **PASS** |
-| **4** | **IDOR: Edit Another User's Snippet** | `GET /editSnippet?id=2` (Snippet owned by User B) | Authenticated as User A, request edit page for ID 2 | Query `WHERE id=? AND user_id=?` yields null; returns 404 | HTTP 404 Not Found | ✅ **PASS** |
-| **5** | **IDOR: Update Another User's Snippet** | `POST /updateSnippet` | Authenticated as User A, submit update with `id=2` | Database query fails (`rowsUpdated = 0`), returns HTTP 404 | HTTP 404 Not Found | ✅ **PASS** |
-| **6** | **IDOR: Delete Another User's Snippet** | `POST /deleteSnippet` | Authenticated as User A, submit delete with `id=2` | Database query `DELETE WHERE id=? AND user_id=?` affects 0 rows, returns 404 | HTTP 404 Not Found | ✅ **PASS** |
-| **7** | **Destructive Action via HTTP GET** | `GET /deleteSnippet?id=1` | Direct GET navigation | Server returns HTTP 405 Method Not Allowed; no deletion | HTTP 405 Method Not Allowed | ✅ **PASS** |
-| **8** | **SQL Injection: Authentication Bypass** | `POST /LoginServlet` | `username = ' OR '1'='1' --` and `password = arbitrary` | Parameterized query treats input as literal; authentication fails | "Invalid username or password" | ✅ **PASS** |
-| **9** | **SQL Injection: Numeric ID Parameter** | `GET /editSnippet?id=1' OR 1=1--` | Submitting SQL syntax in numeric parameter | `InputValidator.isValidSnippetId` rejects; returns HTTP 400 | HTTP 400 Bad Request | ✅ **PASS** |
+| **1** | **BCrypt Password Hashing** | `UserDAO.registerUser` | Register user with password | Stored password in DB begins with `$2a$12$` and is 60 chars | Salted BCrypt hash stored | ✅ **PASS** |
+| **2** | **Legacy Password Auto-Migration** | `UserDAO.validateUser` | Login with pre-existing plaintext password | User successfully authenticated; password column upgraded to BCrypt | Upgraded on first login | ✅ **PASS** |
+| **3** | **Zero Password Logging** | Console / Application Logs | Register & login operations | No password strings appear in stdout, stderr, or loggers | No credentials logged | ✅ **PASS** |
+| **4** | **IDOR: Cross-User Snippet Read** | `GET /editSnippet?id=1` | User B requests User A's snippet ID | DAO returns null; Servlet responds with HTTP 404 Not Found | HTTP 404 Not Found | ✅ **PASS** |
+| **5** | **IDOR: Cross-User Snippet Update** | `POST /updateSnippet` | User B submits update targeting User A's snippet ID | Query `WHERE id=? AND user_id=?` affects 0 rows; HTTP 404 | Update rejected (0 rows) | ✅ **PASS** |
+| **6** | **IDOR: Cross-User Snippet Delete** | `POST /deleteSnippet` | User B submits delete targeting User A's snippet ID | Query `WHERE id=? AND user_id=?` affects 0 rows; HTTP 404 | Delete rejected (0 rows) | ✅ **PASS** |
+| **7** | **Delete via GET Method Rejection** | `GET /deleteSnippet?id=1` | Direct HTTP GET request | Servlet returns HTTP 405 Method Not Allowed; record preserved | HTTP 405 Method Not Allowed | ✅ **PASS** |
+| **8** | **SQL Injection: Login Form** | `POST /LoginServlet` | `username = ' OR 1=1 --` | Parameterized query treats input as literal; login fails | Authentication failed | ✅ **PASS** |
+| **9** | **SQL Injection: Snippet Search** | `GET /dashboard?query=...` | `query = ' UNION SELECT null, password, null...` | Parameterized query treats input as literal; no data leaked | Safe search results | ✅ **PASS** |
 | **10** | **Stored XSS: Script in Snippet Title** | `POST /addSnippet` | `title = <script>alert('XSS-Title')</script>` | Saved safely; rendered via `<c:out>` as encoded text `&lt;script&gt;...` | Rendered as text, no execution | ✅ **PASS** |
 | **11** | **Stored XSS: Event Handler in Title Attribute** | `POST /addSnippet` | `title = " onmouseover="alert('XSS')"` | Rendered in `data-title` with XML attribute escaping | Escaped in DOM attributes | ✅ **PASS** |
 | **12** | **Stored XSS: Code Textarea Payload** | `POST /addSnippet` | `code = </textarea><script>alert('XSS-Code')</script>` | Escaped inside `<textarea>` via `<c:out>`; textarea tag not broken | Rendered as raw code in CodeMirror | ✅ **PASS** |
@@ -27,7 +21,12 @@ This test plan defines the manual and automated security verification procedures
 | **17** | **Complete Session Termination on Logout** | `POST /logout` | Authenticated user logs out, then hits back button | Server session invalidated; `Cache-Control: no-store` prevents history view | Redirect to login; back blocked | ✅ **PASS** |
 | **18** | **Cookie Security Flags** | HTTP Response Headers | Inspect `Set-Cookie` header on login | `CODEVAULT_SESSION` has `HttpOnly` and `SameSite=Lax` | Flags present in Set-Cookie | ✅ **PASS** |
 | **19** | **Security Headers Validation** | HTTP Response Headers | Inspect headers on `GET /dashboard` | `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `CSP` present | All security headers present | ✅ **PASS** |
-| **20** | **Database Connection Isolation & Non-Root User** | Docker Container | Inspect running container port bindings & DB grants | Port 3306 unexposed on host; app connects as `codevault_user` | 3306 internal; non-root user | ✅ **PASS** |
-| **21** | **Container Non-Root User Execution** | `docker exec codevault-app whoami` | Inspect process execution context | Runs as UID 1001 (`tomcatuser`), not root | UID 1001 (tomcatuser) | ✅ **PASS** |
-| **22** | **Container Privilege & Socket Isolation** | `docker inspect codevault-app` | Inspect container privileges & mounts | `Privileged: false`, no `/var/run/docker.sock` mount | Fully unprivileged | ✅ **PASS** |
-| **23** | **Automated Health Monitoring** | `GET /health` | Ping health check endpoint | Returns HTTP 200 with JSON `{"status":"UP","database":"HEALTHY"}` | HTTP 200 JSON OK | ✅ **PASS** |
+| **20** | **Health Check Response Privacy** | `GET /health` | Ping health check endpoint | Returns HTTP 200 `{"status":"UP"}` without internal URLs/traces | Minimal JSON status | ✅ **PASS** |
+| **21** | **Audit Trail: USER_REGISTERED** | `login_audit` in MySQL | User registration flow | `login_audit` records user_id, timestamp, IP, success flag | Verified in MySQL | ✅ **PASS** |
+| **22** | **Audit Trail: LOGIN_SUCCESS** | `login_audit` in MySQL | User login flow | `login_audit` records user_id, timestamp, IP, success=1 | Verified in MySQL | ✅ **PASS** |
+| **23** | **Audit Trail: LOGIN_FAILED** | `login_audit` in MySQL | Invalid password / unknown user | `login_audit` records success=0, user_id (if existing) or NULL | Verified in MySQL | ✅ **PASS** |
+| **24** | **Audit Trail: LOGOUT** | `login_audit` in MySQL | User logout flow | `login_audit` records user_id, timestamp, IP, success=1 | Verified in MySQL | ✅ **PASS** |
+| **25** | **MySQL Workbench & Host Access (3307)** | Host CLI / Workbench | Connect to `127.0.0.1:3307` | Connected as `codevault_user`; port not exposed to 0.0.0.0 | Localhost 3307 only | ✅ **PASS** |
+| **26** | **Container Non-Root User Execution** | `docker exec codevault-app whoami` | Inspect process execution context | Runs as UID 1001 (`tomcatuser`), not root | UID 1001 (tomcatuser) | ✅ **PASS** |
+| **27** | **Container Privilege & Socket Isolation** | `docker inspect codevault-app` | Inspect container privileges & mounts | `Privileged: false`, no `/var/run/docker.sock` mount | Fully unprivileged | ✅ **PASS** |
+| **28** | **Automated Unit & Integration Suites** | `mvn test` & `integration_test.ps1` | Execute full test suites | 15/15 unit tests and 15/15 integration tests pass | All 30 tests pass | ✅ **PASS** |

@@ -52,6 +52,29 @@ public class UserDAO {
     }
 
     /**
+     * Retrieves a user by username without password hash.
+     */
+    public User getUserByUsername(String username) {
+        String sql = "SELECT id, username, email FROM users WHERE username=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User user = new User();
+                    user.setId(rs.getInt("id"));
+                    user.setUsername(rs.getString("username"));
+                    user.setEmail(rs.getString("email"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error retrieving user by username.", e);
+        }
+        return null;
+    }
+
+    /**
      * Validates login credentials. Fetches user by username or email,
      * then verifies the password against the stored BCrypt hash.
      *
