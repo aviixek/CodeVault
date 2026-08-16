@@ -1,0 +1,68 @@
+services:
+  # -------------------------------------------------------
+  # Database Service (MySQL 8.0)
+  # Internal network only — port 3306 NOT exposed to host
+  # -------------------------------------------------------
+  db:
+    image: mysql:8.0
+    container_name: codevault-db
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_me_strong_root_password}
+      MYSQL_DATABASE: ${DB_NAME:-codevault}
+      MYSQL_USER: ${DB_USER:-codevault_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-change_me_strong_app_password}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./src/main/resources/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - codevault-network
+
+  # -------------------------------------------------------
+  # Application Service (Tomcat 11 + CodeVault WAR)
+  # Runs as non-root user (UID 1001), healthcheck on /health
+  # -------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codevault-app
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-codevault}
+      DB_USER: ${DB_USER:-codevault_user}
+      DB_PASSWORD: ${DB_PASSWORD:-change_me_strong_app_password}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - codevault-network
+
+volumes:
+  db_data:
+    name: codevault_db_data
+
+networks:
+  codevault-network:
+    name: codevault_network
+    driver: bridge

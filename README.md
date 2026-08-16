@@ -1,422 +1,173 @@
-<div align="center">
+# CodeVault — Personal Code Snippet Manager
 
-# 🚀 CodeVault
-### Personal Code Snippet Manager
+> A modern, Dockerized, and security-hardened Java web application for managing and organizing programming snippets.
 
-A modern web application for developers to securely save, organize, search, and manage code snippets with syntax highlighting and an elegant user interface.
-
----
-
-![Java](https://img.shields.io/badge/Java-17-orange?style=for-the-badge)
-![JSP](https://img.shields.io/badge/JSP-Servlet-blue?style=for-the-badge)
-![Tomcat](https://img.shields.io/badge/Apache-Tomcat%2011-F8DC75?style=for-the-badge)
-![MySQL](https://img.shields.io/badge/MySQL-Database-00758F?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-
-</div>
+Built with **Java 21**, **Jakarta Servlets (Tomcat 11)**, **JSP / JSTL 3.0**, **JDBC / HikariCP**, **MySQL 8.0**, **Maven**, and **Docker**.
 
 ---
 
-# 📖 About
+## Architecture Overview
 
-**CodeVault** is a dynamic Java web application that helps developers store, organize, edit, and search their programming snippets in one place.
-
-Instead of saving code in random text files or notes, CodeVault provides a clean dashboard where snippets can be categorized, searched instantly, copied with one click, and managed efficiently.
-
-Built using **JSP, Servlets, JDBC, MySQL, and Apache Tomcat**, the project demonstrates core Java Enterprise development concepts with a modern user interface.
-
----
-
-# ✨ Features
-
-### 🔐 Authentication
-
-- User Registration
-- Secure Login
-- Session Management
-- Logout
-
----
-
-### 📝 Snippet Management
-
-- Add Snippets
-- Edit Snippets
-- Delete Snippets
-- View Snippets
+```
+Browser (localhost:8080)
+   ↓
+Apache Tomcat 11.0 (Servlet 6.0 Container / Java 21)
+   ↓
+Security Filters Pipeline (SecurityHeadersFilter → CsrfFilter → AuthFilter)
+   ↓
+Jakarta Servlets (LoginServlet, DashboardServlet, AddSnippetServlet, etc.)
+   ↓
+Data Access Objects (UserDAO, SnippetDAO)
+   ↓
+HikariCP Connection Pool (DataSource)
+   ↓ (Isolated Docker Network: db:3306)
+MySQL 8.0 Database (Least-Privilege user: codevault_user)
+```
 
 ---
 
-### 💻 Code Editor
+## Security Features & Hardening
 
-- CodeMirror Editor
-- Syntax Highlighting
-- Multiple Programming Languages
-- Automatic Formatting Support
-
----
-
-### 🎨 User Interface
-
-- Modern Dashboard
-- Dark Mode
-- Light Mode
-- Responsive Design
-- Glassmorphism Cards
-- Beautiful Animations
+* **Password Security:** Salted **BCrypt** password hashing (Cost Factor 12) with transparent automatic upgrade for legacy accounts. Zero passwords printed in logs or console.
+* **Authorization & IDOR Protection:** Snippet operations (view, edit, update, delete) enforce ownership in every database query (`WHERE id=? AND user_id=?`). Identity is strictly bound to the authenticated server session.
+* **CSRF Protection:** Server-side anti-forgery tokens on all state-changing requests (`POST`), validated using constant-time comparison.
+* **XSS Mitigation:** Context-aware output encoding across all templates via `<c:out value="..." escapeXml="true" />` and attribute escaping.
+* **Session Hardening:** Session fixation prevention on login, 30-minute timeout, `HttpOnly`, and `SameSite=Lax` cookie flags.
+* **Security Headers:** `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and `Permissions-Policy`.
+* **Container Hardening:** Multi-stage build running under an unprivileged user (`UID 1001`), `no-new-privileges:true`, and zero host exposure of MySQL port 3306.
+* **Connection Pooling:** High-performance `HikariCP` pool with try-with-resources resource management.
 
 ---
 
-### 🔍 Search
+## Quickstart (Localhost via Docker)
 
-- Live Search
-- Instant Filtering
-- Language Search
-- Description Search
+### 1. Prerequisites
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (v24+ or newer)
+* [Docker Compose](https://docs.docker.com/compose/) (v2.20+ or newer)
 
----
+### 2. Configure Environment
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+*(Optionally adjust passwords in `.env` if desired; default development passwords work out-of-the-box).*
 
-### 📋 Productivity
+### 3. Launch Application
+```bash
+docker compose up --build -d
+```
 
-- One Click Copy
-- Dashboard Statistics
-- Language Badges
-- Clean Code Preview
+### 4. Access CodeVault
+Open your browser and navigate to:
+```
+http://localhost:8080
+```
 
----
-
-# 🛠️ Tech Stack
-
-## Backend
-
-- Java
-- JSP
-- Servlets
-- JDBC
-
-## Frontend
-
-- HTML5
-- CSS3
-- JavaScript
-
-## Database
-
-- MySQL
-
-## Server
-
-- Apache Tomcat 11
-
-## Libraries
-
-- Highlight.js
-- CodeMirror 5
+### 5. Verify Health Status
+```bash
+curl http://localhost:8080/health
+```
+Expected output:
+```json
+{"status":"UP","database":"HEALTHY"}
+```
 
 ---
 
-# 📂 Project Structure
+## Local Development (Without Docker)
 
-```text
-CodeVault
+If developing locally with Eclipse, IntelliJ, or CLI:
+
+1. Ensure **MySQL 8.0** is running locally and execute `src/main/resources/db/init.sql`.
+2. Set environment variables in your terminal or IDE run configuration:
+   ```bash
+   export DB_HOST=localhost
+   export DB_PORT=3306
+   export DB_NAME=codevault
+   export DB_USER=codevault_user
+   export DB_PASSWORD=your_db_password
+   ```
+3. Build and package the WAR:
+   ```bash
+   mvn clean package
+   ```
+4. Deploy `target/codevault.war` to Apache Tomcat 11.
+
+---
+
+## Database Backup & Restore Procedures
+
+### Database Backup
+To take a complete SQL backup of the CodeVault database from the running Docker container:
+
+```bash
+docker exec codevault-db mysqldump -u root -pchange_me_strong_root_password codevault > backup_codevault.sql
+```
+
+### Database Restore
+To restore data from an existing backup file into the Docker container:
+
+```bash
+docker exec -i codevault-db mysql -u root -pchange_me_strong_root_password codevault < backup_codevault.sql
+```
+
+---
+
+## Running Automated Tests
+
+Run the full JUnit 5 security and unit test suite:
+```bash
+mvn test
+```
+
+Test coverage includes:
+* BCrypt hashing, salt uniqueness, and legacy password upgrade
+* Strict input validation (username regex, email RFC format, password boundaries)
+* Malformed ID and SQL injection payload rejection
+* CSRF token generation and uniqueness
+* Snippet preview truncation and models
+
+---
+
+## Project Structure
+
+```
+CodeVault/
+├── pom.xml                               # Maven project descriptor (Java 21, Tomcat 11)
+├── Dockerfile                            # Multi-stage container definition (non-root)
+├── docker-compose.yml                    # Compose orchestrator (app + db)
+├── .dockerignore                         # Docker build context exclusions
+├── .gitignore                            # Git repository ignore rules
+├── .env.example                          # Environment configuration template
+├── README.md                             # Project documentation
+├── SECURITY_AUDIT.md                     # Comprehensive security audit matrix
+├── SECURITY_TEST_PLAN.md                 # 23-step security test verification plan
+├── SECURITY_REPORT.md                    # Final security & hardening report
 │
 ├── src/
-│   ├── controller/
-│   ├── dao/
-│   ├── model/
-│   ├── util/
-│   └── ...
+│   ├── main/
+│   │   ├── java/com/codevault/
+│   │   │   ├── dao/                      # Data Access Objects (UserDAO, SnippetDAO)
+│   │   │   ├── filter/                   # Security Filters (Auth, CSRF, Headers)
+│   │   │   ├── model/                    # Data models (User, Snippet)
+│   │   │   ├── servlet/                  # Jakarta HTTP Servlets & Health endpoint
+│   │   │   └── util/                     # DBConnection (HikariCP) & InputValidator
+│   │   │
+│   │   ├── resources/
+│   │   │   └── db/
+│   │   │       └── init.sql              # Database initialization & least-privilege user
+│   │   │
+│   │   └── webapp/
+│   │       ├── index.jsp                 # Landing page
+│   │       ├── login.jsp                 # Authentication page
+│   │       ├── register.jsp              # Registration page
+│   │       ├── assets/                   # Shared CSS, JS, CodeMirror 5 assets
+│   │       └── WEB-INF/
+│   │           ├── web.xml               # Deployment descriptor & error mappings
+│   │           └── views/                # Protected JSPs (dashboard, add, edit, errors)
+│   │
+│   └── test/
+│       └── java/com/codevault/           # JUnit 5 security & unit tests
 │
-├── WebContent/
-│   ├── css/
-│   ├── js/
-│   ├── images/
-│   ├── dashboard.jsp
-│   ├── login.jsp
-│   ├── register.jsp
-│   ├── addSnippet.jsp
-│   ├── editSnippet.jsp
-│   ├── profile.jsp
-│   └── WEB-INF/
-│       └── web.xml
-│
-├── build/
-│
-└── README.md
+└── target/                               # Maven build output (codevault.war)
 ```
----
-
-# 📸 Screenshots
-
-## Dashboard
-
-<img width="1912" height="911" alt="image" src="https://github.com/user-attachments/assets/a800659b-d9d5-46e9-a47d-3fee9fa8117d" />
-
-
-## Add Snippet
-
-<img width="1917" height="906" alt="image" src="https://github.com/user-attachments/assets/138ac96c-bd69-4533-873e-d287cbe63a46" />
-
-
-## Login
-
-<img width="1917" height="912" alt="image" src="https://github.com/user-attachments/assets/47dc1d04-ce7e-4f5b-a2a1-c2551fe0d79a" />
-
-
-
-## Dark Mode
-
-<img width="1917" height="913" alt="image" src="https://github.com/user-attachments/assets/a310530b-6ae2-42ad-b1ae-f58a16847f6e" />
-
-
-
-# 🚀 Installation Guide
-
-## Prerequisites
-
-- Java JDK 17 (or the version used by your project)
-- Eclipse IDE for Enterprise Java Developers
-- Apache Tomcat 11
-- MySQL Server
-- Git
-
----
-
-## Clone Repository
-
-```bash
-git clone https://github.com/aviixek/CodeVault.git
-```
-
----
-
-## Import into Eclipse
-
-1. Open Eclipse.
-2. Go to:
-
-```
-File
-    ↓
-Import
-    ↓
-Existing Projects into Workspace
-```
-
-3. Select the cloned project.
-4. Finish the import.
-
----
-
-## Configure Tomcat
-
-1. Open
-
-```
-Servers
-```
-
-2. Add
-
-```
-Apache Tomcat 11
-```
-
-3. Select the installed Tomcat directory.
-
-4. Add the CodeVault project to the server.
-
----
-
-## Configure MySQL
-
-Create a database:
-
-```sql
-CREATE DATABASE codevault;
-```
-
-Create the snippets table:
-
-```sql
-CREATE TABLE snippets(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(100),
-    language VARCHAR(50),
-    code TEXT,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id INT
-);
-```
-
-If your project includes additional tables (such as `users`), create/import those as well.
-
-Update your JDBC connection details inside the project.
-
-Example:
-
-```java
-String url = "jdbc:mysql://localhost:3306/codevault";
-String username = "root";
-String password = "your_password";
-```
-
----
-
-## Run Project
-
-Right-click the project
-
-```
-Run As
-        ↓
-Run on Server
-```
-
-Open
-
-```
-http://localhost:8080/CodeVault
-```
-
----
-
-# 🎯 Current Features
-
-- ✅ User Authentication
-- ✅ Dashboard
-- ✅ CRUD Operations
-- ✅ Live Search
-- ✅ Copy Code
-- ✅ Syntax Highlighting
-- ✅ Code Editor
-- ✅ Dashboard Statistics
-- ✅ Responsive Layout
-- ✅ Dark / Light Theme
-
----
-
-# 🚧 Future Improvements
-
-- ⭐ Favorite Snippets
-- 🏷️ Tags
-- 📂 Collections
-- 📤 Export Snippets
-- 📥 Import Snippets
-- 🔗 Share Snippets
-- 👤 User Profile
-- 📊 Usage Analytics
-- ☁️ Cloud Backup
-- 📱 Progressive Web App (PWA)
-
----
-
-# 🏗️ Architecture
-
-```
-User
-
-   │
-
-   ▼
-
-JSP Pages
-
-   │
-
-   ▼
-
-Servlet Controller
-
-   │
-
-   ▼
-
-DAO Layer
-
-   │
-
-   ▼
-
-JDBC
-
-   │
-
-   ▼
-
-MySQL Database
-```
-
----
-
-# 💡 Why CodeVault?
-
-Developers often store useful code snippets in multiple places, making them difficult to organize and retrieve later.
-
-CodeVault solves this by providing:
-
-- Organized storage
-- Fast searching
-- Syntax highlighting
-- Easy editing
-- One-click copying
-- Secure user accounts
-
----
-
-# 🌐 Live Demo
-
-🚧 Coming Soon
-
-This project currently runs on Apache Tomcat locally. A public deployment will be added in a future update.
-
----
-
-# 🤝 Contributing
-
-Contributions are welcome.
-
-1. Fork the repository.
-2. Create a feature branch.
-
-```bash
-git checkout -b feature/new-feature
-```
-
-3. Commit changes.
-
-```bash
-git commit -m "Added new feature"
-```
-
-4. Push your branch.
-
-```bash
-git push origin feature/new-feature
-```
-
-5. Open a Pull Request.
-
----
-
-# 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-# 👨‍💻 Developer
-
-**Abhishek Kushwaha**
-
-GitHub:
-https://github.com/aviixek
-
----
-
-<div align="center">
-
-⭐ If you like this project, consider giving it a star!
-
-</div>
