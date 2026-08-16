@@ -822,7 +822,7 @@ body.light-theme .select-control option {
         
         <!-- Mobile Navigation CTAs -->
         <div class="mobile-menu-ctas">
-          <a href="${pageContext.request.contextPath}/logout" class="btn btn-danger mobile-only">Logout</a>
+          <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-danger mobile-only">Logout</a>
         </div>
       </nav>
       
@@ -839,7 +839,7 @@ body.light-theme .select-control option {
         </button>
         
         <!-- Desktop Authentication CTAs -->
-        <a href="${pageContext.request.contextPath}/logout" class="btn btn-secondary nav-btn desktop-only">Logout</a>
+        <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-secondary nav-btn desktop-only">Logout</a>
         
         <!-- Mobile Menu Toggle Burger -->
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">

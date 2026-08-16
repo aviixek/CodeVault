@@ -1143,7 +1143,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-
         
         <!-- Mobile Navigation CTAs -->
         <div class="mobile-menu-ctas">
-          <a href="${pageContext.request.contextPath}/logout" class="btn btn-danger mobile-only">Logout</a>
+          <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-danger mobile-only">Logout</a>
         </div>
       </nav>
       
