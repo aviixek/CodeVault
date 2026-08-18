@@ -12,7 +12,8 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * Adds security headers to all responses.
+ * Adds security headers to all HTTP responses.
+ * Enforces strict Content-Security-Policy with zero 'unsafe-inline' scripts and styles.
  */
 @WebFilter(urlPatterns = "/*")
 public class SecurityHeadersFilter implements Filter {
@@ -40,16 +41,20 @@ public class SecurityHeadersFilter implements Filter {
         // Restrict browser features
         httpResponse.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
-        // Content Security Policy
-        // - 'self' for scripts and styles loaded from our own domain
-        // - fonts.googleapis.com / fonts.gstatic.com for Google Fonts
-        // - 'unsafe-inline' is required for <style> blocks in JSPs (documented exception)
-        //   TODO: Extract all inline styles to external CSS files, then remove 'unsafe-inline'
+        // Strict Content Security Policy:
+        // - script-src 'self' (No inline scripts allowed)
+        // - style-src 'self' (No inline styles allowed, all styles in style.css)
+        // - font-src 'self' (Local and system fonts only, no external font CDNs)
+        // - img-src 'self' data:
+        // - connect-src 'self'
+        // - frame-ancestors 'none'
+        // - form-action 'self'
+        // - base-uri 'self'
         httpResponse.setHeader("Content-Security-Policy",
                 "default-src 'self'; " +
                 "script-src 'self'; " +
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                "font-src 'self' https://fonts.gstatic.com; " +
+                "style-src 'self'; " +
+                "font-src 'self'; " +
                 "img-src 'self' data:; " +
                 "connect-src 'self'; " +
                 "frame-ancestors 'none'; " +
@@ -62,6 +67,6 @@ public class SecurityHeadersFilter implements Filter {
 
     @Override
     public void destroy() {
-        // No cleanup needed
+        // No destruction logic needed
     }
 }

@@ -5,10 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>403 Forbidden | CodeVault</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>403 | CodeVault</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body>
@@ -17,11 +14,11 @@
   <div class="bg-glow bg-glow-2"></div>
 
   <main class="app-main auth-main">
-    <div class="glass-card auth-card fade-in" style="text-align: center;">
-      <h1 style="font-size: 4rem; font-weight: 800; color: #ef4444; margin-bottom: 8px;">403</h1>
-      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Access Forbidden</h2>
-      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 28px;">You do not have permission to perform this action or view this resource.</p>
-      <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-primary" style="width: 100%;">Return to Dashboard</a>
+    <div class="glass-card auth-card fade-in error-card">
+      <h1 class="error-code-danger">403</h1>
+      <h2 class="error-title">You don't have permission to do that.</h2>
+      <p class="error-desc">You do not have permission to view or modify this resource.</p>
+      <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-primary btn-full-width">Return to Saved Code</a>
     </div>
   </main>
   <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>

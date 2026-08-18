@@ -29,11 +29,12 @@ public class RegisterServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        String clientIp = getClientIp(request);
+        // Client IP: use getRemoteAddr directly
+        String clientIp = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
         AuditDAO auditDAO = new AuditDAO();
 
-        // --- Server-side input validation (never log passwords) ---
+        // --- Server-side input validation ---
         if (!InputValidator.isValidUsername(username)) {
             auditDAO.logEvent(null, AuditDAO.EVENT_USER_REGISTERED, false, clientIp, userAgent);
             request.setAttribute("error",
@@ -78,7 +79,7 @@ public class RegisterServlet extends HttpServlet {
         User user = new User();
         user.setUsername(username.trim());
         user.setEmail(email.trim());
-        user.setPassword(password); // DAO will hash it
+        user.setPassword(password); // DAO will hash with BCrypt
 
         boolean result = dao.registerUser(user);
 
@@ -88,20 +89,12 @@ public class RegisterServlet extends HttpServlet {
             auditDAO.logEvent(newUserId, AuditDAO.EVENT_USER_REGISTERED, true, clientIp, userAgent);
 
             LOGGER.info("New user registered: " + username.trim());
-            request.setAttribute("message", "Registration successful! Please login.");
+            request.setAttribute("message", "Account created successfully! Please sign in.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         } else {
             auditDAO.logEvent(null, AuditDAO.EVENT_USER_REGISTERED, false, clientIp, userAgent);
-            request.setAttribute("error", "Registration failed. Please try again.");
+            request.setAttribute("error", "Something went wrong. Please try again.");
             request.getRequestDispatcher("register.jsp").forward(request, response);
         }
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String xf = request.getHeader("X-Forwarded-For");
-        if (xf != null && !xf.isBlank()) {
-            return xf.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

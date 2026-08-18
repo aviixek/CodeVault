@@ -5,12 +5,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | CodeVault</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <title>Sign in | CodeVault</title>
+
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body>
@@ -22,12 +18,12 @@
 
   <!-- Drifting Ambient Programming Symbols -->
   <div class="floating-elements">
-    <div class="floating-item" style="top: 15%; left: 8%; animation-delay: 0s;">{ }</div>
-    <div class="floating-item" style="top: 25%; right: 10%; animation-delay: 2s;">&lt;/&gt;</div>
-    <div class="floating-item" style="top: 65%; left: 5%; animation-delay: 4s;">( )</div>
-    <div class="floating-item" style="top: 75%; right: 12%; animation-delay: 1s;">&lt; &gt;</div>
-    <div class="floating-item binary" style="top: 40%; left: 85%; animation-delay: 3s;">1010</div>
-    <div class="floating-item binary" style="top: 80%; left: 12%; animation-delay: 5s;">0101</div>
+    <div class="floating-item float-pos-1">{ }</div>
+    <div class="floating-item float-pos-2">&lt;/&gt;</div>
+    <div class="floating-item float-pos-3">( )</div>
+    <div class="floating-item float-pos-4">&lt; &gt;</div>
+    <div class="floating-item binary float-pos-5">1010</div>
+    <div class="floating-item binary float-pos-6">0101</div>
   </div>
 
   <!-- Header -->
@@ -49,8 +45,8 @@
         <a href="${pageContext.request.contextPath}/index.jsp#technologies" class="nav-link">Stack</a>
         
         <div class="mobile-menu-ctas">
-          <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-primary mobile-only">Login</a>
-          <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-secondary mobile-only" style="margin-top: 8px;">Register</a>
+          <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-primary mobile-only">Sign in</a>
+          <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-secondary mobile-only mt-8">Create account</a>
         </div>
       </nav>
       
@@ -61,12 +57,12 @@
             <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
           </svg>
           <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+            <path d="M12 3a6 6 0 0 0 9 9 9 0 1 1-9-9Z"></path>
           </svg>
         </button>
         
-        <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-primary nav-btn desktop-only" style="border-color: var(--accent-blue);">Login</a>
-        <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-secondary nav-btn desktop-only">Register</a>
+        <a href="${pageContext.request.contextPath}/login.jsp" class="btn btn-primary nav-btn desktop-only">Sign in</a>
+        <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-secondary nav-btn desktop-only">Create account</a>
         
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">
           <span></span>
@@ -87,8 +83,8 @@
           <path d="M25 16L29 20L25 24" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
           <path d="M18 25L22 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
         </svg>
-        <h2 class="auth-title">Welcome Back</h2>
-        <p class="auth-subtitle">Access your personal snippet vault</p>
+        <h1 class="auth-title auth-title-custom">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to access your saved code</p>
       </div>
       
       <!-- Safe Error Alert with JSTL escaping -->
@@ -123,7 +119,7 @@
           <input class="form-control" type="text" id="username" name="username" placeholder="Username or email address" required autocomplete="username" />
         </div>
         
-        <div class="form-group" style="margin-bottom: 24px;">
+        <div class="form-group mb-24">
           <label class="form-label" for="password">Password</label>
           <div class="input-wrapper">
             <input class="form-control" type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
@@ -143,7 +139,7 @@
       
       <div class="auth-footer-text">
         Don't have an account? 
-        <a href="${pageContext.request.contextPath}/register.jsp">Register Here</a>
+        <a href="${pageContext.request.contextPath}/register.jsp">Create account</a>
       </div>
     </div>
   </main>

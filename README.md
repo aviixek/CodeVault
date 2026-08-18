@@ -1,213 +1,155 @@
-# CodeVault — Personal Code Snippet Manager
+# CodeVault
 
-> A modern, Dockerized, and security-hardened Java web application for managing and organizing programming snippets.
+CodeVault is a simple place to save and organize your code.
 
-Built with **Java 21 LTS**, **Apache Tomcat 11 (Jakarta Servlet 6.0)**, **JSP / JSTL 3.0**, **JDBC / HikariCP**, **MySQL 8.0**, **Maven**, and **Docker Compose**.
+## Start CodeVault
 
----
+1. Install Docker Desktop.
+2. Download this project.
+3. Open the project folder.
+4. Run:
 
-## Architecture Overview
-
-```
-Browser (localhost:8080)
-   ↓
-Apache Tomcat 11.0 (Servlet 6.0 Container / Java 21)
-   ↓
-Security Filters Pipeline (SecurityHeadersFilter → CsrfFilter → AuthFilter)
-   ↓
-Jakarta Servlets (LoginServlet, DashboardServlet, AddSnippetServlet, etc.)
-   ↓
-Data Access Objects (UserDAO, SnippetDAO, AuditDAO)
-   ↓
-HikariCP Connection Pool (DataSource)
-   ↓ (Internal Bridge Network: db:3306)
-MySQL 8.0 Database
-   ↑ (Host Port Mapping: 127.0.0.1:3307 — Localhost Only)
-MySQL Workbench & Host CLI
-```
-
----
-
-## Security Features & Hardening
-
-* **Authentication & Audit Logging:** Comprehensive security event tracking in `login_audit` (`USER_REGISTERED`, `LOGIN_SUCCESS`, `LOGIN_FAILED`, `LOGOUT`). Zero passwords, hashes, or tokens stored in audit logs.
-* **Password Security:** Salted **BCrypt** password hashing (Cost Factor 12) with transparent automatic upgrade for legacy accounts. Zero passwords printed in logs or console.
-* **Authorization & IDOR Protection:** Snippet operations (view, edit, update, delete) enforce ownership in every database query (`WHERE id=? AND user_id=?`). Identity is strictly bound to the authenticated server session.
-* **CSRF Protection:** Server-side anti-forgery tokens on all state-changing requests (`POST`), validated using constant-time comparison (`MessageDigest.isEqual`).
-* **XSS Mitigation:** Context-aware output encoding across all templates via `<c:out value="..." escapeXml="true" />` and attribute escaping.
-* **Session Hardening:** Session fixation prevention on login, 30-minute timeout, `HttpOnly`, and `SameSite=Lax` cookie flags.
-* **Security Headers:** `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, and `Permissions-Policy`.
-* **Container Hardening:** Multi-stage build running under an unprivileged user (`UID 1001`), `no-new-privileges:true`, and strictly localhost-bound database port (`127.0.0.1:3307`).
-* **Connection Pooling:** High-performance `HikariCP` pool with fail-fast credential validation and try-with-resources resource management.
-
----
-
-## Quickstart (First-Time Setup)
-
-### 1. Prerequisites
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (v24+ or newer)
-* [Docker Compose](https://docs.docker.com/compose/) (v2.20+ or newer)
-
-### 2. Configure Environment
-Create your `.env` configuration file from the template:
-
-**Windows PowerShell:**
 ```powershell
-Copy-Item .env.example .env
+.\start.ps1
 ```
 
-**Linux / macOS:**
+5. Open:
+
+**http://localhost:8080**
+
+That's it.
+
+---
+
+## Daily Commands (Windows PowerShell)
+
+| Action | Command | Description |
+| :--- | :--- | :--- |
+| **Start** | `.\start.ps1` | Starts CodeVault, builds containers, and verifies readiness. |
+| **Stop** | `.\stop.ps1` | Stops CodeVault cleanly (preserves your saved data). |
+| **Restart** | `.\restart.ps1` | Restarts CodeVault services and checks health. |
+| **Status** | `.\status.ps1` | Displays the current running status of the application and database. |
+| **Backup** | `.\backup.ps1` | Creates a timestamped `.sql` backup file in the project folder. |
+| **Reset Database** | `.\reset-database.ps1` | *(Destructive)* Confirms and resets database to a fresh state. |
+
+---
+
+## Linux / macOS Instructions
+
+On Linux or macOS, you can launch CodeVault using Docker Compose:
+
 ```bash
+# 1. Copy template configuration (first-time only)
 cp .env.example .env
-```
 
-Open `.env` and configure your secure local passwords:
-```ini
-DB_HOST=db
-DB_PORT=3306
-DB_NAME=codevault
-DB_USER=codevault_user
-DB_PASSWORD=your_strong_app_password_here
-MYSQL_ROOT_PASSWORD=your_strong_root_password_here
-```
-
-### 3. Launch Application
-```bash
+# 2. Build and start containers
 docker compose up --build -d
+
+# 3. Stop containers
+docker compose stop
 ```
 
-### 4. Access CodeVault
-Open your browser and navigate to:
-```
-http://localhost:8080
-```
-
-### 5. Verify Health Status
-```bash
-curl http://localhost:8080/health
-```
-Expected output:
-```json
-{"status":"UP"}
-```
+Open **http://localhost:8080** in your browser.
 
 ---
 
-## Connecting with MySQL Workbench & Host CLI
+## Inspecting the Database Locally
 
-MySQL is securely mapped to **`127.0.0.1:3307`** on your host (not exposed publicly or bound to `0.0.0.0`).
+### Option A: MySQL Workbench (Recommended GUI)
 
-### MySQL Workbench Configuration
-In MySQL Workbench, click **+** to add a new connection:
-* **Connection Name:** `CodeVault Local`
-* **Hostname:** `127.0.0.1`
-* **Port:** `3307`
-* **Username:** `codevault_user`
-* **Password:** *(enter the value from `DB_PASSWORD` in your `.env` file)*
-* **Default Schema:** `codevault`
+You can connect directly to your local CodeVault database with MySQL Workbench:
 
-### Host CLI Connection (PowerShell / Terminal)
-If you have the `mysql` client installed on your host machine:
-```powershell
+- **Hostname / Host:** `127.0.0.1`
+- **Port:** `3307`
+- **Username:** `codevault_user`
+- **Password:** *(the `DB_PASSWORD` configured in your `.env` file)*
+- **Database / Schema:** `codevault`
+
+> **Note:** MySQL is exposed only on `127.0.0.1:3307` (localhost only) for your security. It is never exposed publicly.
+
+### Option B: MySQL Command Line (CLI)
+
+From your terminal, connect interactively without exposing passwords on the command line:
+
+```bash
 mysql -h 127.0.0.1 -P 3307 -u codevault_user -p
 ```
 
-### Docker CLI Connection (Direct Container Access)
-You can also connect directly inside the running container without installing local MySQL tools:
+Or execute queries directly inside the running Docker container:
+
 ```bash
-docker exec -it codevault-db mysql -u codevault_user -p codevault
+docker compose exec -it db mysql -u codevault_user -p codevault
 ```
 
 ---
 
-## Monitoring & Audit SQL Queries
+## Safe Database Inspection Queries
 
-Connect to MySQL and run these queries to inspect data securely:
+See [`database-commands.sql`](database-commands.sql) for ready-to-run queries.
 
-### View Login & Registration Activity (Audit Trail)
+### View Registered Users
 ```sql
-SELECT id, user_id, event_type, success, ip_address, created_at
-FROM login_audit
-ORDER BY created_at DESC;
-```
+USE codevault;
 
-### View Activity with Username (Joined Query)
-```sql
-SELECT a.id, a.user_id, u.username, a.event_type, a.success, a.ip_address, a.created_at
-FROM login_audit a
-LEFT JOIN users u ON a.user_id = u.id
-ORDER BY a.created_at DESC;
-```
-
-### View Registered Users Safely (Without Password Hashes)
-```sql
 SELECT id, username, email, created_at
 FROM users
-ORDER BY id ASC;
+ORDER BY id DESC;
 ```
 
-### View Snippets
+### View User Activity & Audit Trail
 ```sql
-SELECT id, title, language, user_id, created_at
-FROM snippets
-ORDER BY created_at DESC;
+USE codevault;
+
+SELECT
+    a.id,
+    u.username,
+    a.event_type,
+    a.success,
+    a.ip_address,
+    a.created_at
+FROM login_audit a
+LEFT JOIN users u ON a.user_id = u.id
+ORDER BY a.id DESC;
 ```
 
 ---
 
-## Database Backup & Restore Procedures
+## Database Backup & Restore
 
-### Database Backup
-To create a complete SQL backup of the CodeVault database:
-```bash
-docker exec codevault-db mysqldump -u root -p<MYSQL_ROOT_PASSWORD> codevault > backup_codevault.sql
-```
-
-### Database Restore
-To restore data into the container:
-```bash
-docker exec -i codevault-db mysql -u root -p<MYSQL_ROOT_PASSWORD> codevault < backup_codevault.sql
-```
-
----
-
-## Existing Database Migration Procedure
-
-If you have an existing database from an earlier version and need to add `login_audit` without losing any existing users or snippets:
-
-```bash
-docker exec -i codevault-db mysql -u root -p<MYSQL_ROOT_PASSWORD> codevault < src/main/resources/db/migration.sql
-```
-
-*(Do **NOT** run `docker compose down -v` as that deletes database volumes).*
-
----
-
-## Essential Management Commands Reference
-
-| Action | Command |
-|---|---|
-| **1. Start CodeVault** | `docker compose up --build -d` |
-| **2. Open Website** | Navigate to `http://localhost:8080` in your browser |
-| **3. Connect with MySQL CLI** | `mysql -h 127.0.0.1 -P 3307 -u codevault_user -p` |
-| **4. Connect with MySQL Workbench** | Host: `127.0.0.1`, Port: `3307`, User: `codevault_user`, Database: `codevault` |
-| **5. View Registered Users Safely** | `docker exec -i codevault-db mysql -u codevault_user -p<DB_PASSWORD> codevault -e "SELECT id, username, email, created_at FROM users;"` |
-| **6. View Snippets** | `docker exec -i codevault-db mysql -u codevault_user -p<DB_PASSWORD> codevault -e "SELECT id, title, language, user_id, created_at FROM snippets;"` |
-| **7. View Login & Activity Audit** | `docker exec -i codevault-db mysql -u codevault_user -p<DB_PASSWORD> codevault -e "SELECT a.id, u.username, a.event_type, a.success, a.created_at FROM login_audit a LEFT JOIN users u ON a.user_id = u.id ORDER BY a.id DESC;"` |
-| **8. Back Up Database** | `docker exec codevault-db mysqldump -u root -p<ROOT_PASSWORD> codevault > backup_codevault.sql` |
-| **9. Stop Application** | `docker compose stop` |
-| **10. Restart Application** | `docker compose restart` |
-
----
-
-## Running Automated Tests
-
-Run the full JUnit 5 unit and security test suite:
-```bash
-mvn test
-```
-
-Run the end-to-end integration and security test suite:
+### Creating a Backup
+Run:
 ```powershell
-powershell -ExecutionPolicy Bypass -File "src/test/resources/integration_test.ps1"
+.\backup.ps1
 ```
+This generates a file named `backup_codevault_YYYYMMDD_HHMMSS.sql`.
+
+### Restoring a Backup
+To restore a saved backup:
+```powershell
+docker compose exec -T db sh -c 'mysql -u "$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < backup_codevault_YYYYMMDD_HHMMSS.sql
+```
+
+---
+
+## Security Highlights
+
+CodeVault is hardened against common web application vulnerabilities and validated through automated and manual security testing:
+
+- **Password Hashing:** Salted **BCrypt** (Cost Factor 12). Plaintext passwords and hashes are never exposed in logs or monitoring queries.
+- **Audit Logging:** Tracks `USER_REGISTERED`, `LOGIN_SUCCESS`, `LOGIN_FAILED`, and `LOGOUT` events in `login_audit`.
+- **POST-Only Logout:** Logout strictly requires HTTP POST with valid CSRF token. GET requests are rejected with HTTP 405.
+- **CSRF Protection:** Synchronizer token pattern with constant-time verification for state-changing POST requests.
+- **Strict IDOR & Authorization:** SQL-level ownership verification (`WHERE id=? AND user_id=?`) on every view, update, and delete operation.
+- **XSS & Injection Defense:** Context-aware JSTL escaping (`<c:out>`) and 100% parameterized SQL `PreparedStatement` queries.
+- **Content Security Policy (CSP):** Strict self-contained policy (`default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'`) with zero external CDNs and zero inline scripts/styles.
+- **Docker Hardening:** Application runs as a dedicated non-root user (`UID 1001`), with `no-new-privileges:true`, and MySQL restricted strictly to `127.0.0.1:3307`.
+
+---
+
+## Developer Information
+
+- **Java Version:** 21 (Eclipse Temurin LTS)
+- **Servlet Container:** Apache Tomcat 11.0
+- **Web Specifications:** Jakarta EE 10 / Jakarta Servlets 6.0 / JSP 3.1 / JSTL 3.0
+- **Database:** MySQL 8.0 with HikariCP 5.1 connection pooling
+- **Testing:** JUnit 5 test suite (`mvn test`) and PowerShell integration tests

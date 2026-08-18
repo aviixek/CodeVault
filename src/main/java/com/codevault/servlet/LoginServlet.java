@@ -30,14 +30,15 @@ public class LoginServlet extends HttpServlet {
         String login = request.getParameter("username");
         String password = request.getParameter("password");
 
-        String clientIp = getClientIp(request);
+        // Client IP: use getRemoteAddr directly (prevent X-Forwarded-For spoofing on local/docker)
+        String clientIp = request.getRemoteAddr();
         String userAgent = request.getHeader("User-Agent");
         AuditDAO auditDAO = new AuditDAO();
 
-        // Basic input validation — do NOT log the password
+        // Basic input validation — never log or reveal password
         if (login == null || login.isBlank() || password == null || password.isBlank()) {
             auditDAO.logEvent(null, AuditDAO.EVENT_LOGIN_FAILED, false, clientIp, userAgent);
-            request.setAttribute("error", "Invalid username or password.");
+            request.setAttribute("error", "Username/email or password is incorrect.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
@@ -47,11 +48,10 @@ public class LoginServlet extends HttpServlet {
 
         if (user != null) {
             // --- Session fixation protection ---
-            // 1. Save any existing session attributes we want to keep (e.g., CSRF token)
+            // 1. Save existing session attributes we want to preserve (e.g. CSRF token)
             HttpSession oldSession = request.getSession(false);
             Map<String, Object> preserved = new HashMap<>();
             if (oldSession != null) {
-                // Preserve CSRF token across session regeneration
                 Object csrfToken = oldSession.getAttribute("csrf_token");
                 if (csrfToken != null) {
                     preserved.put("csrf_token", csrfToken);
@@ -80,24 +80,16 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/dashboard");
 
         } else {
-            // Check if user exists to associate user_id in audit if possible (without revealing to client)
+            // Determine user ID if username exists in DB for audit trail, without revealing to user
             User existingUser = dao.getUserByUsername(login.trim());
             Integer targetUserId = (existingUser != null) ? existingUser.getId() : null;
 
             // Record LOGIN_FAILED audit log
             auditDAO.logEvent(targetUserId, AuditDAO.EVENT_LOGIN_FAILED, false, clientIp, userAgent);
 
-            // Generic error message to prevent username enumeration
-            request.setAttribute("error", "Invalid username or password.");
+            // Generic error message prevents username/email enumeration
+            request.setAttribute("error", "Username/email or password is incorrect.");
             request.getRequestDispatcher("login.jsp").forward(request, response);
         }
-    }
-
-    private String getClientIp(HttpServletRequest request) {
-        String xf = request.getHeader("X-Forwarded-For");
-        if (xf != null && !xf.isBlank()) {
-            return xf.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
     }
 }

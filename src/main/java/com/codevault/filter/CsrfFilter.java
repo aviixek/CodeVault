@@ -68,7 +68,7 @@ public class CsrfFilter implements Filter {
                 String submittedToken = httpRequest.getParameter(CSRF_TOKEN_PARAM);
                 if (!constantTimeEquals(csrfToken, submittedToken)) {
                     LOGGER.warning("CSRF token validation failed for path: " + path);
-                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid or missing CSRF token.");
+                    httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Your request could not be verified. Please refresh the page and try again.");
                     return;
                 }
             }

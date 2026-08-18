@@ -5,10 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>500 Internal Server Error | CodeVault</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>500 | CodeVault</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body>
@@ -17,11 +14,11 @@
   <div class="bg-glow bg-glow-2"></div>
 
   <main class="app-main auth-main">
-    <div class="glass-card auth-card fade-in" style="text-align: center;">
-      <h1 style="font-size: 4rem; font-weight: 800; color: #ef4444; margin-bottom: 8px;">500</h1>
-      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px;">Unexpected Error</h2>
-      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 28px;">An unexpected error occurred. The incident has been securely logged on the server.</p>
-      <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-primary" style="width: 100%;">Return to Safety</a>
+    <div class="glass-card auth-card fade-in error-card">
+      <h1 class="error-code-danger">500</h1>
+      <h2 class="error-title">Something went wrong. Please try again.</h2>
+      <p class="error-desc">CodeVault encountered an unexpected issue. Please try again later.</p>
+      <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-primary btn-full-width">Return to Saved Code</a>
     </div>
   </main>
   <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>

@@ -5,12 +5,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Snippet | CodeVault</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <title>Save New Code | CodeVault</title>
+
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/codemirror5/lib/codemirror.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/codemirror5/theme/dracula.css">
@@ -37,13 +33,13 @@
       </a>
       
       <nav class="nav-menu">
-        <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">Dashboard</a>
-        <a href="${pageContext.request.contextPath}/addSnippet" class="nav-link" style="color: var(--text-primary);">Add Snippet</a>
+        <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">Saved Code</a>
+        <a href="${pageContext.request.contextPath}/addSnippet" class="nav-link nav-link-active">Save New Code</a>
         
         <div class="mobile-menu-ctas">
-          <form action="${pageContext.request.contextPath}/logout" method="post" style="width: 100%;">
+          <form action="${pageContext.request.contextPath}/logout" method="post" class="form-full-width">
             <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
-            <button type="submit" class="btn btn-danger mobile-only" style="width: 100%;">Logout</button>
+            <button type="submit" class="btn btn-danger mobile-only btn-full-width">Sign out</button>
           </form>
         </div>
       </nav>
@@ -59,9 +55,9 @@
           </svg>
         </button>
         
-        <form action="${pageContext.request.contextPath}/logout" method="post" style="display:inline;">
+        <form action="${pageContext.request.contextPath}/logout" method="post" class="form-inline">
           <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
-          <button type="submit" class="btn btn-secondary nav-btn desktop-only">Logout</button>
+          <button type="submit" class="btn btn-secondary nav-btn desktop-only">Sign out</button>
         </form>
         
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">
@@ -81,13 +77,13 @@
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        Back to Dashboard
+        Back to Saved Code
       </a>
     </div>
     
     <div class="glass-card editor-card fade-in delay-1">
       <div class="editor-header">
-        <h1 class="editor-title">Create Code Snippet</h1>
+        <h1 class="editor-title">Save New Code</h1>
       </div>
       
       <!-- Safe Error Alert with JSTL escaping -->
@@ -107,12 +103,12 @@
         <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
 
         <div class="form-group">
-          <label class="form-label" for="title">Snippet Title</label>
-          <input class="form-control" type="text" id="title" name="title" placeholder="e.g. Binary Search implementation" required maxlength="200" />
+          <label class="form-label" for="title">Code Title</label>
+          <input class="form-control" type="text" id="title" name="title" placeholder="e.g. QuickSort Algorithm" required maxlength="200" />
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="language">Programming Language</label>
+          <label class="form-label" for="language">Language</label>
           <select class="form-control select-control" id="language" name="language" required>
             <option value="" disabled selected>Select a language</option>
             <option value="Java">Java</option>
@@ -136,17 +132,17 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="description">Description</label>
-          <textarea class="form-control" id="description" name="description" placeholder="Provide a brief explanation of what this snippet solves..." rows="3" maxlength="2000"></textarea>
+          <label class="form-label" for="description">About This Code</label>
+          <textarea class="form-control" id="description" name="description" placeholder="Provide a brief explanation of what this code does..." rows="3" maxlength="2000"></textarea>
         </div>
         
         <div class="form-group">
-          <label class="form-label" for="code">Code Snippet</label>
-          <textarea id="code" name="code" class="form-control" placeholder="// Write or paste your code snippet here..." style="display:none;"></textarea>
+          <label class="form-label" for="code">Code</label>
+          <textarea id="code" name="code" class="form-control hidden-code-textarea" placeholder="// Write or paste your code here..."></textarea>
         </div>
         
-        <button class="btn btn-primary btn-auth" type="submit" id="submitBtn" style="margin-top: 12px;">
-          Save Snippet
+        <button class="btn btn-primary btn-auth btn-auth-submit" type="submit" id="submitBtn">
+          Save Code
         </button>
       </form>
     </div>
@@ -174,53 +170,6 @@
   <script src="${pageContext.request.contextPath}/assets/codemirror5/addon/selection/active-line.js"></script>
 
   <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
-
-  <script>
-    // Initialize CodeMirror
-    const codeArea = document.getElementById('code');
-    const langSelect = document.getElementById('language');
-
-    const editor = CodeMirror.fromTextArea(codeArea, {
-      lineNumbers: true,
-      mode: 'text/x-java',
-      theme: 'dracula',
-      autoCloseBrackets: true,
-      matchBrackets: true,
-      styleActiveLine: true,
-      tabSize: 4,
-      indentUnit: 4,
-      lineWrapping: true
-    });
-
-    const modeMap = {
-      'Java': 'text/x-java',
-      'C': 'text/x-csrc',
-      'C++': 'text/x-c++src',
-      'C#': 'text/x-csharp',
-      'Python': 'text/x-python',
-      'JavaScript': 'text/javascript',
-      'TypeScript': 'text/typescript',
-      'MySQL': 'text/x-sql',
-      'SQL': 'text/x-sql',
-      'HTML': 'text/html',
-      'XML': 'application/xml',
-      'CSS': 'text/css',
-      'JSP': 'application/x-jsp'
-    };
-
-    if (langSelect) {
-      langSelect.addEventListener('change', () => {
-        const mode = modeMap[langSelect.value] || 'text/plain';
-        editor.setOption('mode', mode);
-      });
-    }
-
-    const form = document.getElementById('addSnippetForm');
-    if (form) {
-      form.addEventListener('submit', () => {
-        editor.save();
-      });
-    }
-  </script>
+  <script src="${pageContext.request.contextPath}/assets/js/editor.js"></script>
 </body>
 </html>

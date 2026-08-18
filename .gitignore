@@ -1,27 +1,36 @@
-# Eclipse settings
+# Eclipse metadata
 .classpath
 .project
 .settings/
 
-# Build output
+# Build artifacts
 build/
 target/
 
-# Maven
+# Maven dependencies
 *.jar
+*.war
+*.ear
 !src/main/webapp/assets/**/*.jar
 
-# Environment
+# Environment secrets
 .env
+
+# Generated database backups
+backup_*.sql
+backup_codevault_*.sql
 
 # Logs
 *.log
+logs/
 
-# OS files
+# OS metadata
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE configurations
 .idea/
 *.iml
+*.iws
+*.ipr
 .vscode/

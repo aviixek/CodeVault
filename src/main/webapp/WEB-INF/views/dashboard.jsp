@@ -5,12 +5,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard | CodeVault</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <title>Saved Code | CodeVault</title>
+
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 </head>
 <body>
@@ -34,13 +30,13 @@
       </a>
       
       <nav class="nav-menu">
-        <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">Dashboard</a>
-        <a href="${pageContext.request.contextPath}/addSnippet" class="nav-link">Add Snippet</a>
+        <a href="${pageContext.request.contextPath}/dashboard" class="nav-link">Saved Code</a>
+        <a href="${pageContext.request.contextPath}/addSnippet" class="nav-link">Save New Code</a>
         
         <div class="mobile-menu-ctas">
-          <form action="${pageContext.request.contextPath}/logout" method="post" style="width: 100%;">
+          <form action="${pageContext.request.contextPath}/logout" method="post" class="form-full-width">
             <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
-            <button type="submit" class="btn btn-danger mobile-only" style="width: 100%;">Logout</button>
+            <button type="submit" class="btn btn-danger mobile-only btn-full-width">Sign out</button>
           </form>
         </div>
       </nav>
@@ -56,9 +52,9 @@
           </svg>
         </button>
         
-        <form action="${pageContext.request.contextPath}/logout" method="post" style="display:inline;">
+        <form action="${pageContext.request.contextPath}/logout" method="post" class="form-inline">
           <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
-          <button type="submit" class="btn btn-secondary nav-btn desktop-only">Logout</button>
+          <button type="submit" class="btn btn-secondary nav-btn desktop-only">Sign out</button>
         </form>
         
         <button id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="Toggle Menu">
@@ -73,8 +69,8 @@
   <!-- Main Content -->
   <main class="app-main dashboard-main">
     <div class="dashboard-header fade-in">
-      <h1 class="welcome-title">Welcome back, <span><c:out value="${not empty sessionScope.username ? sessionScope.username : 'Developer'}" /></span></h1>
-      <p class="stat-date desktop-only" style="color: var(--text-secondary); font-size: 0.95rem; font-weight: 500;">
+      <h1 class="welcome-title">Welcome back, <span><c:out value="${not empty sessionScope.username ? sessionScope.username : 'User'}" /></span></h1>
+      <p class="stat-date desktop-only stat-date-custom">
         Logged in securely
       </p>
     </div>
@@ -82,7 +78,7 @@
     <!-- Stats Cards Grid -->
     <div class="stats-grid fade-in delay-1">
       <div class="glass-card stat-card">
-        <span class="stat-label">Total Snippets</span>
+        <span class="stat-label">Total Saved Code</span>
         <span class="stat-value"><c:out value="${not empty totalSnippets ? totalSnippets : 0}" /></span>
       </div>
       
@@ -96,7 +92,7 @@
               </c:forEach>
             </c:when>
             <c:otherwise>
-              <span style="color: var(--text-secondary); font-size: 0.9rem;">No languages yet</span>
+              <span class="stat-empty-lang">No languages yet</span>
             </c:otherwise>
           </c:choose>
         </div>
@@ -104,7 +100,7 @@
       
       <div class="glass-card stat-card">
         <span class="stat-label">Last Updated</span>
-        <span class="stat-value" style="font-size: 1.2rem;"><c:out value="${lastUpdated}" /></span>
+        <span class="stat-value stat-value-sm"><c:out value="${lastUpdated}" /></span>
       </div>
     </div>
 
@@ -116,22 +112,22 @@
             <circle cx="11" cy="11" r="8"></circle>
             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-          <input type="text" id="searchInput" placeholder="Search snippets by title, language, description..." class="form-control search-input" autocomplete="off" />
+          <input type="text" id="searchInput" placeholder="Search code by title, language, or details..." class="form-control search-input" autocomplete="off" />
         </div>
       </div>
       
       <a href="${pageContext.request.contextPath}/addSnippet" class="btn btn-primary btn-add-snippet">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+        <svg class="mr-6" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Add Snippet
+        Save New Code
       </a>
     </div>
 
-    <div id="searchStatus" style="margin-bottom: 18px; color: var(--text-secondary); font-size: 0.9rem;"></div>
+    <div id="searchStatus" class="search-status-bar"></div>
 
-    <!-- Snippet Display -->
+    <!-- Code Display -->
     <c:choose>
       <c:when test="${not empty snippets}">
         <div class="snippet-grid fade-in delay-3">
@@ -183,7 +179,7 @@
                   </button>
                   <div class="copy-tooltip">Copied!</div>
 
-                  <textarea class="full-code" style="display:none;"><c:out value="${snippet.code}" /></textarea>
+                  <textarea class="full-code hidden-code-textarea"><c:out value="${snippet.code}" /></textarea>
                   <pre><code class="language-${highlightLang}"><c:out value="${snippet.previewCode}" /></code></pre>
                   <div class="preview-fade"></div>
                 </div>
@@ -194,20 +190,20 @@
               </div>
               
               <div class="snippet-footer">
-                <span class="snippet-date">Added: <c:out value="${snippet.createdAt}" /></span>
+                <span class="snippet-date">Saved: <c:out value="${snippet.createdAt}" /></span>
                 
                 <div class="snippet-actions">
-                  <a href="${pageContext.request.contextPath}/editSnippet?id=${snippet.id}" class="btn-action" title="Edit Snippet" aria-label="Edit Snippet">
+                  <a href="${pageContext.request.contextPath}/editSnippet?id=${snippet.id}" class="btn-action" title="Edit Code" aria-label="Edit Code">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                   </a>
                   
-                  <form action="${pageContext.request.contextPath}/deleteSnippet" method="post" onsubmit="return confirm('Are you sure you want to delete this snippet?');" style="display:inline;">
+                  <form action="${pageContext.request.contextPath}/deleteSnippet" method="post" onsubmit="return confirm('Are you sure you want to delete this code?');" class="form-inline">
                     <input type="hidden" name="csrf_token" value="<c:out value='${csrf_token}' />" />
                     <input type="hidden" name="id" value="<c:out value='${snippet.id}' />" />
-                    <button type="submit" class="btn-action btn-action-delete" title="Delete Snippet" aria-label="Delete Snippet">
+                    <button type="submit" class="btn-action btn-action-delete" title="Delete Code" aria-label="Delete Code">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="3 6 5 6 21 6"></polyline>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -230,18 +226,11 @@
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
             <line x1="12" y1="22.08" x2="12" y2="12"></line>
           </svg>
-          <h3 class="empty-title">No Snippets Found</h3>
+          <h3 class="empty-title">No Saved Code Found</h3>
           <p class="empty-description">
-            <c:choose>
-              <c:when test="${not empty param.query}">
-                Your search query "<c:out value="${param.query}" />" did not match any stored snippets.
-              </c:when>
-              <c:otherwise>
-                Your code library is currently empty. Get started by creating your first programming snippet!
-              </c:otherwise>
-            </c:choose>
+            Your code library is currently empty. Get started by saving your first piece of code!
           </p>
-          <a href="${pageContext.request.contextPath}/addSnippet" class="btn btn-primary">Create Snippet</a>
+          <a href="${pageContext.request.contextPath}/addSnippet" class="btn btn-primary">Save New Code</a>
         </div>
       </c:otherwise>
     </c:choose>
